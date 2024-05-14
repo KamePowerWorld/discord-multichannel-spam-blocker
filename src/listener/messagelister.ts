@@ -1,6 +1,5 @@
-import { Message, time, User } from "discord.js";
-import loadConfig, { Config } from "../config/config";
-
+import { Message } from "discord.js";
+import { Config } from "../config/config";
 /**
  * メッセージリスナー
  *
@@ -18,14 +17,6 @@ export class MessageListener {
   private onMultiPostSpammingDetected: (message: Message) => void = () => { };
 
   /**
-   * ブラックリストに登録されたドメインが含まれていた場合の処理を設定する ブラックリストはコンフィグで設定可能
-   */
-  private onBlackListedDomainDetected: (
-    result: string,
-    message: Message,
-  ) => void = () => { };
-
-  /**
    * コンフィグ (コンストラクタで読み込む)
    */
   private config: Config;
@@ -37,8 +28,8 @@ export class MessageListener {
     [key: string]: Message<boolean>[];
   } | undefined;
 
-  constructor() {
-    this.config = loadConfig();
+  constructor(config: Config) {
+    this.config = config;
   }
 
   /**
@@ -48,16 +39,6 @@ export class MessageListener {
    */
   setOnMultiPostSpammingDetected(func: (message: Message) => void) {
     this.onMultiPostSpammingDetected = func;
-  }
-
-  /**
-   * ブラックリストに登録されたドメインが含まれていた場合の処理を設定する ブラックリストはコンフィグで設定可能
-   * @param func void
-   */
-  setonBlackListedDomainDetected(
-    func: (result: string, message: Message) => void,
-  ) {
-    this.onBlackListedDomainDetected = func;
   }
 
   /**
@@ -83,7 +64,7 @@ export class MessageListener {
   checkMultiPostSpamming() {
     const users = this.chunk();
     const channels = this.chunkByChannel();
-    
+
     for (const key in users) {
       const messages = users[key];
       if (messages.length >= this.config.max_allows_multi_post_channels_count) {

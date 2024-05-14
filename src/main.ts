@@ -37,7 +37,7 @@ class CustomClient {
   constructor(client: Client, token: string) {
     this.token = token;
     this.client = client;
-    this.messageListener = new MessageListener();
+    this.messageListener = new MessageListener(config);
 
     this.client.on(Events.ClientReady, async () => {
       await this.onReady();
@@ -74,10 +74,6 @@ class CustomClient {
     if (this.log_channel) {
       // log_channel.send({embeds: [getLogEmbedMessage("Info", "Bot is ready!", true, "info")]});
     }
-
-    this.messageListener.setonBlackListedDomainDetected((url, message) => {
-      message.delete();
-    });
 
     this.messageListener.setOnMultiPostSpammingDetected(async (message) => {
       this.onSpam(message);
