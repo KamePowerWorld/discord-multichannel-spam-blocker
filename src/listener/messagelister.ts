@@ -121,42 +121,4 @@ export class MessageListener {
 
     return match_result;
   }
-
-  /**
-   * ホワイトリストに登録されているドメインかどうかを判定する
-   * @param urlStr 判定するURL
-   * @returns {boolean}
-   */
-  isArrowedDomain(urlStr: string): boolean {
-    const url = new URL(urlStr);
-
-    const host = url.host;
-    const white_domain = this.config.whitelist_domains.filter(
-      (white_domain) => white_domain == host,
-    );
-    if (white_domain.length > 0) {
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   * ブラックリストに登録されているドメインかどうかを判定する
-   * @param urlStr 判定するURL
-   * @returns {boolean}
-   */
-  isNotArrowedDomain(urlStr: string): boolean {
-    const url = new URL(urlStr);
-
-    const host = url.host;
-    const black_domain = this.config.blacklist_domains.filter(
-      (black_domain) => black_domain == host,
-    );
-    if (black_domain.length > 0) {
-      return true;
-    }
-
-    return false;
-  }
 }
