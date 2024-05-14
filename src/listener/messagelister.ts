@@ -14,7 +14,7 @@ export class MessageListener {
   /**
    * 複数のメッセージを短時間で投稿した場合の処理を設定する 時間はコンフィグで設定可能
    */
-  private onMultiPostSpammingDetected: (message: Message) => void = () => { };
+  private onMultiPostSpammingDetected: (message: Message<boolean>[]) => void = () => { };
 
   /**
    * コンフィグ (コンストラクタで読み込む)
@@ -24,9 +24,14 @@ export class MessageListener {
   /**
    * ユーザーごとのメッセージリスト
    */
-  private users: {
-    [key: string]: Message<boolean>[];
-  } | undefined;
+  private userMessages: {
+    [user: string]: { // キーはユーザー
+      channel: string, // チャンネルとメッセージのペアを保存する
+      content: string,
+      timestamp: Date,
+      message: Message,
+    }[] // ユーザーごとに配列で持っておく
+  } = {};
 
   constructor(config: Config) {
     this.config = config;
@@ -37,7 +42,7 @@ export class MessageListener {
    * @param func
    * @returns void
    */
-  setOnMultiPostSpammingDetected(func: (message: Message) => void) {
+  setOnMultiPostSpammingDetected(func: (message: Message<boolean>[]) => void) {
     this.onMultiPostSpammingDetected = func;
   }
 
@@ -48,30 +53,7 @@ export class MessageListener {
   addMessage(message: Message<boolean>) {
     this.messages.push(message);
 
-    if (this.checkMultiPostSpamming()) {
-      this.onMultiPostSpammingDetected(message);
-      this.messages = this.messages.filter(message => message.author.id !== message.author.id);
-      if (this.users) {
-        this.users[message.author.id] = [];
-      }
-    }
-
-  }
-
-  /**
-   * 60秒以内に3つ以上のチャンネルに同じメッセージを投稿した場合に処理を行う
-   */
-  checkMultiPostSpamming() {
-    const users = this.chunk();
-    const channels = this.chunkByChannel();
-
-    for (const key in users) {
-      const messages = users[key];
-      if (messages.length >= this.config.max_allows_multi_post_channels_count) {
-        return true;
-      }
-    }
-    return false;
+    
   }
 
   /**

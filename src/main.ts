@@ -14,7 +14,7 @@ import { commands } from "./commands";
 import { deployCommands } from "./commandregister";
 import loadConfig from "./config/config";
 import { MessageListener } from "./listener/messagelister";
-import { getLogEmbedMessage } from "./util/utils";
+import { getLogEmbedMessage, getSpamLogEmbed } from "./util/utils";
 
 const config = loadConfig();
 
@@ -76,12 +76,12 @@ class CustomClient {
     }
 
     this.messageListener.setOnMultiPostSpammingDetected(async (message) => {
-      this.onSpam(message);
+      await this.onSpam(message);
     });
   }
 
-  onSpam(message: Message<boolean>) {
-    message.member?.roles.add(config.warning_role_id);
+  async onSpam(message: Message<boolean>[]) {
+    await this.log_channel?.send({ embeds: [getSpamLogEmbed(message[0].author, message)] });
   }
 
   public onMessageCreate(message: Message<boolean>) {
