@@ -7,11 +7,6 @@ import { Config } from "../config/config";
  */
 export class MessageListener {
   /**
-   * メッセージリスト
-   */
-  private messages: Message<boolean>[] = [];
-
-  /**
    * 複数のメッセージを短時間で投稿した場合の処理を設定する 時間はコンフィグで設定可能
    */
   private onMultiPostSpammingDetected: (message: Message<boolean>[]) => void = () => { };
@@ -51,56 +46,11 @@ export class MessageListener {
    * @param message
    */
   addMessage(message: Message<boolean>) {
-    this.messages.push(message);
-
-    
-  }
-
-  /**
-   * ユーザーごとにメッセージを分ける
-   */
-  chunk() {
-    const users = this.messages.reduce((acc, message) => {
-      if (!acc[message.author.id]) {
-        acc[message.author.id] = [];
-      }
-      acc[message.author.id].push(message);
-      return acc;
-    }, {} as { [key: string]: Message<boolean>[] });
-    return users;
-  }
-
-  /**
-   * チャンネルごとにメッセージを分ける
-   */
-  chunkByChannel() {
-    const channels = this.messages.reduce((acc, message) => {
-      if (!acc[message.channel.id]) {
-        acc[message.channel.id] = [];
-      }
-      acc[message.channel.id].push(message);
-      return acc;
-    }, {} as { [key: string]: Message<boolean>[] });
-    return channels;
-  }
-
-
-  /**
-   * メッセージを取得する
-   */
-  getMessages() {
-    return this.messages;
-  }
-
-  /**
-   * メッセージ内のURLを正規表現で取得する
-   * @returns {RegExpMatchArray | null}
-   * @param message メッセージ
-   */
-  getUrlsByRexExp(message: string): RegExpMatchArray | null {
-    const regexp = new RegExp("https?://(?:[-\\w.]|(?:%[a-fA-F0-9]{2}))+");
-    const match_result = message.match(regexp);
-
-    return match_result;
+    this.userMessages[message.author.id].push({
+      channel: message.channel.id,
+      content: message.content,
+      timestamp: new Date(message.createdTimestamp),
+      message: message,
+    });
   }
 }
