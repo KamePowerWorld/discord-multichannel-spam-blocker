@@ -75,7 +75,6 @@ export class MessageListener {
 
     channel_messages.forEach((channel_message) => {
       Object.entries(channel_message.chunked_messages).forEach(([user, messages]) => {
-        const index = channel_message.chunked_messages[user];
         
       });
     });
