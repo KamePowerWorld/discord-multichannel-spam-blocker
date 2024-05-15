@@ -5,7 +5,7 @@ type UserMessage = {
   [user: string]: MessageType[]
 };
 
-type MessageType = { // キーはユーザー
+export type MessageType = { // キーはユーザー
   channel: string, // チャンネルとメッセージのペアを保存する
   content: string,
   timestamp: Date,
@@ -28,7 +28,7 @@ export class MessageListener {
   /**
    * 複数のメッセージを短時間で投稿した場合の処理を設定する 時間はコンフィグで設定可能
    */
-  private onMultiPostSpammingDetected: (message: Message<boolean>[]) => void = () => { };
+  private onMultiPostSpammingDetected: (message: MessageType[]) => void = () => { };
 
   /**
    * コンフィグ (コンストラクタで読み込む)
@@ -49,7 +49,7 @@ export class MessageListener {
    * @param func
    * @returns void
    */
-  setOnMultiPostSpammingDetected(func: (message: Message<boolean>[]) => void) {
+  setOnMultiPostSpammingDetected(func: (message: MessageType[]) => void) {
     this.onMultiPostSpammingDetected = func;
   }
 
@@ -75,7 +75,17 @@ export class MessageListener {
 
     channel_messages.forEach((channel_message) => {
       Object.entries(channel_message.chunked_messages).forEach(([user, messages]) => {
-        
+        messages.forEach((message) => {
+          const index: number = messages.indexOf(message);
+          const before_message = messages[index - 1];
+
+          if(before_message){
+            const diff = message.timestamp.getTime() - before_message.timestamp.getTime();
+            if (diff < this.config.cooldown) {
+              this.onMultiPostSpammingDetected(messages);
+            }
+          }
+        });
       });
     });
 

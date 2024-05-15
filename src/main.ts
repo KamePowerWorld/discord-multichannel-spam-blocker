@@ -13,7 +13,7 @@ import dotenv from "dotenv";
 import { commands } from "./commands";
 import { deployCommands } from "./commandregister";
 import loadConfig from "./config/config";
-import { MessageListener } from "./listener/messagelister";
+import { MessageListener, MessageType } from "./listener/messagelister";
 import { getLogEmbedMessage, getSpamLogEmbed } from "./util/utils";
 
 const config = loadConfig();
@@ -87,15 +87,15 @@ class CustomClient {
     });
   }
 
-  async onSpam(messages: Message<boolean>[]) {
+  async onSpam(messages: MessageType[]) {
     messages.forEach((message) => {
       if (message) {
-        if (message.deletable) {
-          message.delete();
+        if (message.message.deletable) {
+          message.message.delete();
         }
       }
     });
-    await this.log_channel?.send({ embeds: [getSpamLogEmbed(messages[0].author, messages)] });
+    await this.log_channel?.send({ embeds: [getSpamLogEmbed(messages[0].message.author, messages.map((message => message.message)))] });
   }
 
   public onMessageCreate(message: Message<boolean>) {
