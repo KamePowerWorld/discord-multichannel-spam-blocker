@@ -80,9 +80,8 @@ export class MessageListener {
 
     //重複をカウント
     const duplicate_count = messages.filter((m) => m.content === message.content).length;
-    const sameMessages = messages.filter((m) => m.message.id !== message.id);
     if (duplicate_count >= this.config.max_allows_multi_post_channels_count) {
-      const user_messages = sameMessages.filter((m) => m.content === message.content);
+      const user_messages = messages.filter((m) => m.content === message.content);
 
       //timestamp diff
       const diff = user_messages[user_messages.length - 1].timestamp.getTime() - message.createdTimestamp;
