@@ -73,7 +73,12 @@ export class MessageListener {
     this.userMessages[message.author.id] = messages;
     const channel_messages = this.chunkByChannel(messages);
 
-    
+    channel_messages.forEach((channel_message) => {
+      Object.entries(channel_message.chunked_messages).forEach(([user, messages]) => {
+        const index = channel_message.chunked_messages[user];
+        
+      });
+    });
 
     console.log(channel_messages);
   }
