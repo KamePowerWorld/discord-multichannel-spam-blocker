@@ -80,8 +80,9 @@ export class MessageListener {
 
     //重複をカウント
     const duplicate_count = messages.filter((m) => m.content === message.content).length;
+    const sameMessages = messages.filter((m) => m.message.id !== message.id);
     if (duplicate_count >= this.config.max_allows_multi_post_channels_count) {
-      const user_messages = messages.filter((m) => m.content === message.content);
+      const user_messages = sameMessages.filter((m) => m.content === message.content);
 
       //timestamp diff
       const diff = user_messages[user_messages.length - 1].timestamp.getTime() - message.createdTimestamp;
@@ -90,7 +91,7 @@ export class MessageListener {
         const is_same_user = user_messages.every((m) => m.message.author.id === message.author.id);
 
         if (is_same_user) {
-          this.onMultiPostSpammingDetected(this.userMessages[message.author.id]);
+          this.onMultiPostSpammingDetected(user_messages);
           this.userMessages[message.author.id] = [];
         }
       }
