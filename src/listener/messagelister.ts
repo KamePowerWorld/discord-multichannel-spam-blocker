@@ -10,7 +10,14 @@ type MessageType = { // キーはユーザー
   content: string,
   timestamp: Date,
   message: Message<boolean>,
-} // ユーザーごとに配列で持っておく
+}; // ユーザーごとに配列で持っておく
+
+type ChunkedMessageType = {
+  channel: string;
+  chunked_messages: {
+    [user: string]: MessageType[];
+  };
+};
 
 /**
  * メッセージリスナー
@@ -66,10 +73,12 @@ export class MessageListener {
     this.userMessages[message.author.id] = messages;
     const channel_messages = this.chunkByChannel(messages);
 
+    
+
     console.log(channel_messages);
   }
 
-  chunkByChannel(messages: MessageType[]) {
+  chunkByChannel(messages: MessageType[]): ChunkedMessageType[] {
     const channel_messages = messages.reduce((acc, message) => {
       if (!acc[message.channel]) {
         acc[message.channel] = [];
