@@ -26,7 +26,7 @@ export function getSpamLogEmbed(user: User, messages: Message[]) {
     .addFields([
       {
         name: "送信したチャンネル",
-        value: `${messages.map(message => `ID:${message.channelId}`).join("\n")}`,
+        value: `${messages.map(message => `ID:${message.channelId} チャンネル名:${message.guild?.channels.cache.find(channel=>channel.id = message.channel.id)?.name}`).join("\n")}`,
       },
       {
         name: "メッセージ内容",

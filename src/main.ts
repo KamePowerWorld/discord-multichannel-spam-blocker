@@ -33,6 +33,7 @@ class CustomClient {
   private token: string;
   private messageListener: MessageListener;
   private log_channel: TextChannel | undefined;
+  private test_channels: TextChannel[] = [];
 
   constructor(client: Client, token: string) {
     this.token = token;
@@ -71,17 +72,30 @@ class CustomClient {
       config.log_channel_id,
     )) as TextChannel;
 
+    this.test_channels = await Promise.all(config.test_channel_id.map(async (id) => (await exclusive_server?.channels.fetch(id)) as TextChannel));
+
     if (this.log_channel) {
       // log_channel.send({embeds: [getLogEmbedMessage("Info", "Bot is ready!", true, "info")]});
     }
 
-    this.messageListener.setOnMultiPostSpammingDetected(async (message) => {
-      await this.onSpam(message);
+    this.messageListener.setOnMultiPostSpammingDetected(async (messages) => {
+      await this.onSpam(messages);
+    });
+
+    this.test_channels.forEach((channel) => {
+      channel.messages.channel.bulkDelete(100);
     });
   }
 
-  async onSpam(message: Message<boolean>[]) {
-    await this.log_channel?.send({ embeds: [getSpamLogEmbed(message[0].author, message)] });
+  async onSpam(messages: Message<boolean>[]) {
+    messages.forEach((message) => {
+      if (message) {
+        if (message.deletable) {
+          message.delete();
+        }
+      }
+    });
+    await this.log_channel?.send({ embeds: [getSpamLogEmbed(messages[0].author, messages)] });
   }
 
   public onMessageCreate(message: Message<boolean>) {

@@ -1,5 +1,17 @@
-import { Message } from "discord.js";
+import { Message, User } from 'discord.js';
 import { Config } from "../config/config";
+
+type UserMessage = {
+  [user: string]: MessageType[]
+};
+
+type MessageType = { // キーはユーザー
+  channel: string, // チャンネルとメッセージのペアを保存する
+  content: string,
+  timestamp: Date,
+  message: Message<boolean>,
+} // ユーザーごとに配列で持っておく
+
 /**
  * メッセージリスナー
  *
@@ -19,14 +31,7 @@ export class MessageListener {
   /**
    * ユーザーごとのメッセージリスト
    */
-  private userMessages: {
-    [user: string]: { // キーはユーザー
-      channel: string, // チャンネルとメッセージのペアを保存する
-      content: string,
-      timestamp: Date,
-      message: Message,
-    }[] // ユーザーごとに配列で持っておく
-  } = {};
+  private userMessages: UserMessage = {};
 
   constructor(config: Config) {
     this.config = config;
@@ -46,11 +51,53 @@ export class MessageListener {
    * @param message
    */
   addMessage(message: Message<boolean>) {
-    this.userMessages[message.author.id].push({
+    let messages = this.userMessages[message.author.id];
+    if (!messages) {
+      messages = [];
+    }
+
+    messages.push({
       channel: message.channel.id,
       content: message.content,
       timestamp: new Date(message.createdTimestamp),
       message: message,
     });
+
+    this.userMessages[message.author.id] = messages;
+    const channel_messages = this.chunkByChannel(messages);
+
+    console.log(channel_messages);
+  }
+
+  chunkByChannel(messages: MessageType[]) {
+    const channel_messages = messages.reduce((acc, message) => {
+      if (!acc[message.channel]) {
+        acc[message.channel] = [];
+      }
+      acc[message.channel].push(message);
+      return acc;
+    }, {} as { [channel: string]: MessageType[] });
+
+    const result = Object.entries(channel_messages).map(([channel, messages]) => {
+      const chunked_messages = this.chunkByUser(messages);
+      return {
+        channel,
+        chunked_messages
+      };
+    });
+
+    return result;
+  }
+
+  chunkByUser(messages: MessageType[]) {
+    const chunked_messages = messages.reduce((acc, message) => {
+      if (!acc[message.message.author.id]) {
+        acc[message.message.author.id] = [];
+      }
+      acc[message.message.author.id].push(message);
+      return acc;
+    }, {} as { [user: string]: MessageType[] });
+
+    return chunked_messages;
   }
 }
