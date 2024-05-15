@@ -88,14 +88,14 @@ class CustomClient {
   }
 
   async onSpam(messages: MessageType[]) {
-    messages.forEach((message) => {
-      if (message) {
+    messages.forEach(async (message) => {
+      if (message.message) {
         if (message.message.deletable) {
-          message.message.delete();
+          await message.message.delete().catch((error) => { });
         }
       }
     });
-    await this.log_channel?.send({ embeds: [getSpamLogEmbed(messages[0].message.author, messages.map((message => message.message)))] });
+    await this.log_channel?.send({ embeds: [await getSpamLogEmbed(messages[0].message.author, messages.map((message => message.message)))] });
   }
 
   public onMessageCreate(message: Message<boolean>) {

@@ -40,6 +40,11 @@ export class MessageListener {
    */
   private userMessages: UserMessage = {};
 
+  /**
+   * チャンネルごとのメッセージリスト
+   */
+  private channel_messages: ChunkedMessageType[] = [];
+
   constructor(config: Config) {
     this.config = config;
   }
@@ -71,25 +76,25 @@ export class MessageListener {
     });
 
     this.userMessages[message.author.id] = messages;
-    const channel_messages = this.chunkByChannel(messages);
+    this.channel_messages = this.chunkByChannel(messages);
 
-    channel_messages.forEach((channel_message) => {
-      Object.entries(channel_message.chunked_messages).forEach(([user, messages]) => {
-        messages.forEach((message) => {
-          const index: number = messages.indexOf(message);
-          const before_message = messages[index - 1];
+    //重複をカウント
+    const duplicate_count = messages.filter((m) => m.content === message.content).length;
+    if (duplicate_count >= this.config.max_allows_multi_post_channels_count) {
+      const user_messages = messages.filter((m) => m.content === message.content);
 
-          if(before_message){
-            const diff = message.timestamp.getTime() - before_message.timestamp.getTime();
-            if (diff < this.config.cooldown) {
-              this.onMultiPostSpammingDetected(messages);
-            }
-          }
-        });
-      });
-    });
+      //timestamp diff
+      const diff = user_messages[user_messages.length - 1].timestamp.getTime() - message.createdTimestamp;
+      if (diff <= this.config.cooldown) {
+        //メッセージがすべて同じユーザーであるかどうかを確認
+        const is_same_user = user_messages.every((m) => m.message.author.id === message.author.id);
 
-    console.log(channel_messages);
+        if (is_same_user) {
+          this.onMultiPostSpammingDetected(this.userMessages[message.author.id]);
+          this.userMessages[message.author.id] = [];
+        }
+      }
+    }
   }
 
   chunkByChannel(messages: MessageType[]): ChunkedMessageType[] {

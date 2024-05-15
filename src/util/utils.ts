@@ -19,18 +19,23 @@ export function getLogEmbedMessage(
   return embed;
 }
 
-export function getSpamLogEmbed(user: User, messages: Message[]) {
+export async function getSpamLogEmbed(user: User, messages: Message[]) {
+  const sent_channels = messages.map(async (message) => {
+    const channel_name = (await message.guild?.channels.fetch(message.channel.id))?.name;
+    return `ID:${message.channelId} チャンネル名:${channel_name}`;
+  });
+  
   return new EmbedBuilder()
     .setTitle("連投検知")
     .setDescription(`${user.displayName} (<@${user.id}>) が複数チャンネルで連投しました`)
     .addFields([
       {
         name: "送信したチャンネル",
-        value: `${messages.map(message => `ID:${message.channelId} チャンネル名:${message.guild?.channels.cache.find(channel=>channel.id = message.channel.id)?.name}`).join("\n")}`,
+        value: (await Promise.all(sent_channels)).join("\n"),
       },
       {
         name: "メッセージ内容",
-        value: `${messages[0].content}`,
+        value: `${messages[0].content} ×${messages.length}`,
       }
     ])
     .setAuthor({
