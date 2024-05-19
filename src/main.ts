@@ -57,11 +57,7 @@ class CustomClient {
   }
 
   public async onReady() {
-    console.log("Ready!");
-
-    if (this.client.user) {
-      console.log(this.client.user.tag);
-    }
+    console.log(`Ready! ${this.client.user?.tag}`);
 
     const exclusive_server = this.client.guilds.cache.find(
       (guild) => guild.id === config.exclusive_server_id,
