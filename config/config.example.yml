@@ -5,3 +5,4 @@ cooldown: # 同じメッセージを送信できる間隔
 warning_role_id: # 警告ロールのID
 timeout_duration: # タイムアウトする期間
 max_allows_multi_post_channels_count: # マルチポストができるチャンネルの個数
+test_channel_id: # テスト用のチャンネルのID 再起動後に履歴を削除します

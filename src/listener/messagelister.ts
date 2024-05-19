@@ -91,7 +91,7 @@ export class MessageListener {
 
         if (is_same_user) {
           this.onMultiPostSpammingDetected(user_messages);
-          this.userMessages[message.author.id] = [];
+          this.userMessages[message.author.id] = this.userMessages[message.author.id].filter((m) => m.content !== message.content);
         }
       }
     }

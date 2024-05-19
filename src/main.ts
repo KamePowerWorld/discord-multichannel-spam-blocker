@@ -72,7 +72,9 @@ class CustomClient {
       config.log_channel_id,
     )) as TextChannel;
 
-    this.test_channels = await Promise.all(config.test_channel_id.map(async (id) => (await exclusive_server?.channels.fetch(id)) as TextChannel));
+    if(config.test_channel_id){
+      this.test_channels = await Promise.all(config.test_channel_id.map(async (id) => (await exclusive_server?.channels.fetch(id)) as TextChannel));
+    }
 
     if (this.log_channel) {
       // log_channel.send({embeds: [getLogEmbedMessage("Info", "Bot is ready!", true, "info")]});
