@@ -15,5 +15,6 @@ export async function execute(interaction: CommandInteraction) {
         "info",
       ),
     ],
+    ephemeral: true
   });
 }

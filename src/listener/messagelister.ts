@@ -84,16 +84,19 @@ export class MessageListener {
       const user_messages = messages.filter((m) => m.content === message.content);
 
       //timestamp diff
-      const diff = user_messages[user_messages.length - 1].timestamp.getTime() - message.createdTimestamp;
+      const time = user_messages[0].timestamp.getTime();
+      const diff = message.createdTimestamp - time;
       if (diff <= this.config.cooldown) {
         //メッセージがすべて同じユーザーであるかどうかを確認
         const is_same_user = user_messages.every((m) => m.message.author.id === message.author.id);
 
         if (is_same_user) {
           this.onMultiPostSpammingDetected(user_messages);
-          this.userMessages[message.author.id] = this.userMessages[message.author.id].filter((m) => m.content !== message.content);
+          
         }
       }
+      
+      this.userMessages[message.author.id] = this.userMessages[message.author.id].filter((m) => m.content !== message.content);
     }
   }
 

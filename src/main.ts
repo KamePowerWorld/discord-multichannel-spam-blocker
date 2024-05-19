@@ -11,7 +11,7 @@ import {
 } from "discord.js";
 import dotenv from "dotenv";
 import { commands } from "./commands";
-import { deployCommands } from "./commandregister";
+// import { deployCommands } from "./commandregister";
 import loadConfig from "./config/config";
 import { MessageListener, MessageType } from "./listener/messagelister";
 import { getLogEmbedMessage, getSpamLogEmbed } from "./util/utils";
@@ -23,10 +23,10 @@ dotenv.config();
 const token = process.env.TOKEN;
 const clientId = process.env.CLIENT_ID;
 
-if (token && clientId) {
-  const rest = new REST({ version: "10" }).setToken(token);
-  deployCommands(clientId, rest);
-}
+// if (token && clientId) {
+//   const rest = new REST({ version: "10" }).setToken(token);
+//   deployCommands(clientId, rest);
+// }
 
 class CustomClient {
   private client: Client;
@@ -115,7 +115,7 @@ class CustomClient {
     }
     const { commandName } = interaction;
     if (commands[commandName as keyof typeof commands]) {
-      commands[commandName as keyof typeof commands].execute(interaction);
+      // commands[commandName as keyof typeof commands].execute(interaction);
     }
   }
 
