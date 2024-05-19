@@ -66,7 +66,6 @@ class CustomClient {
     const exclusive_server = this.client.guilds.cache.find(
       (guild) => guild.id === config.exclusive_server_id,
     );
-    console.log(exclusive_server?.name);
 
     this.log_channel = (await exclusive_server?.channels.fetch(
       config.log_channel_id,
@@ -93,7 +92,14 @@ class CustomClient {
     messages.forEach(async (message) => {
       if (message.message) {
         if (message.message.deletable) {
-          await message.message.delete().catch((error) => { });
+          await message.message.delete().catch((error) => {
+
+          });
+
+          const member = await message.message.guild?.members.fetch(message.message.author.id);
+          if(member){
+            await member.timeout(config.timeout_duration, "スパム行為、マルチポストを行ったため自動でタイムアウト処置を行いました。");
+          }
         }
       }
     });
