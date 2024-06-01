@@ -41,7 +41,9 @@ class CustomClient {
     this.client.on(Events.ClientReady, async () => {
       await this.onReady();
     });
-    this.client.on(Events.MessageCreate, this.onMessageCreate);
+    this.client.on(Events.MessageCreate, message=>{
+      this.onMessageCreate(message);
+    });
     this.client.on(Events.InteractionCreate, this.onInteractionCreate);
     this.client.on(Events.Error, (error) => {
       this.log_channel?.send({ embeds: [getLogEmbedMessage("Error", error.message, true, "error")] });
