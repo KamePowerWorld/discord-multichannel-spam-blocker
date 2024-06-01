@@ -1,9 +1,10 @@
-exclusive_server_id: # BOTの専属サーバーのID
-exclusive_server_name: # BOTの専属サーバーの名前
-log_channel_id: # ログを吐き出すチャンネルのID
-cooldown: # 同じメッセージを送信できる間隔
-warning_role_id: # 警告ロールのID
-timeout_duration: # タイムアウトする期間
-max_allows_multi_post_channels_count: # マルチポストができるチャンネルの個数
-test_channel_id: # テスト用のチャンネルのID 再起動後に履歴を削除します
-whitelist_role_ids: # ホワイトリストロールのID
+exclusive_server_id: "00000000000" # BOTの専属サーバーのID
+exclusive_server_name: "Example Server" # BOTの専属サーバーの名前
+log_channel_id: "00000000000" # ログを吐き出すチャンネルのID
+cooldown: 5000 # 同じメッセージを送信できる間隔 (ミリ秒)
+timeout_duration: 604800000 # タイムアウトする期間 (1週間)
+max_allows_multi_post_channels_count: 3 # マルチポストができるチャンネルの個数
+test_channel_ids: # テスト用のチャンネルのID 再起動後に履歴を削除します
+- "00000000000"
+whitelist_role_ids: # ホワイトリストロールのID string[]
+  - "00000000000"

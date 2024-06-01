@@ -6,7 +6,6 @@ import {
   TextChannel,
   Interaction,
   Events,
-  REST,
   CacheType,
 } from "discord.js";
 import dotenv from "dotenv";
@@ -43,9 +42,7 @@ class CustomClient {
     this.client.on(Events.ClientReady, async () => {
       await this.onReady();
     });
-    this.client.on(Events.MessageCreate, (message) => {
-      this.onMessageCreate(message);
-    });
+    this.client.on(Events.MessageCreate, this.onMessageCreate);
     this.client.on(Events.InteractionCreate, this.onInteractionCreate);
     this.client.on(Events.Error, (error) => {
       this.log_channel?.send({ embeds: [getLogEmbedMessage("Error", error.message, true, "error")] });
@@ -67,8 +64,8 @@ class CustomClient {
       config.log_channel_id,
     )) as TextChannel;
 
-    if (config.test_channel_id) {
-      this.test_channels = await Promise.all(config.test_channel_id.map(async (id) => (await exclusive_server?.channels.fetch(id)) as TextChannel));
+    if (config.test_channel_ids) {
+      this.test_channels = await Promise.all(config.test_channel_ids.map(async (id) => (await exclusive_server?.channels.fetch(id)) as TextChannel));
     }
 
     if (this.log_channel) {
@@ -87,7 +84,7 @@ class CustomClient {
   async onSpam(messages: MessageType[]) {
     const member = await messages[0].message.guild?.members.fetch(messages[0].message.author.id);
     if (member && member.kickable) {
-      const hasrole = member.roles.cache.map((role) => config.whitelist_user_ids.includes(role.id)).includes(true);
+      const hasrole = member.roles.cache.map((role) => role.id == role.id).includes(true);
       if (hasrole) {
         messages.forEach(async (message) => {
           if (message.message && message.message?.deletable) {
