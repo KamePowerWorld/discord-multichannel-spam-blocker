@@ -42,6 +42,7 @@ pnpm run start
 | `timeout_duration` | タイムアウトする期間 | 6048000000 | `number` | ミリセカンドだけど普通に秒に直したい |
 | `max_allows_multi_post_channels_count` | マルチポストができるチャンネルの個数 | 3 | `number` | マルチポスト型のスパム許さん(( |
 | `test_channel_id` | テストチャンネルのID | ? | `string[]` | テストなので再起動後に履歴を削除するように(なくても動く) |
+| `whitelist_role_ids` | ホワイトリストロールID | ? | `string` | 管理者ロールなどを追加して無視するようにする |
 # 今後追加したい機能&整えたいもの
 
 - [ ] コマンドのヘルプ

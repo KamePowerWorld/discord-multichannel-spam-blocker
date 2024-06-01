@@ -85,20 +85,28 @@ class CustomClient {
   }
 
   async onSpam(messages: MessageType[]) {
-    messages.forEach(async (message) => {
-      if (message.message && message.message?.deletable) {
-        await message.message.delete().catch((error) => {
-
-        });
-      }
-    });
-
     const member = await messages[0].message.guild?.members.fetch(messages[0].message.author.id);
     if (member && member.kickable) {
-      await member.timeout(config.timeout_duration, "スパム行為、マルチポストを行ったため自動でタイムアウト処置を行いました。");
-    }
+      const hasrole = member.roles.cache.map((role) => config.whitelist_user_ids.includes(role.id)).includes(true);
+      if (hasrole) {
+        messages.forEach(async (message) => {
+          if (message.message && message.message?.deletable) {
+            await message.message.delete().catch((error) => {
 
-    await this.log_channel?.send({ embeds: [await getSpamLogEmbed(messages[0].message.author, messages.map((message => message.message)))] });
+            });
+          }
+        });
+
+        await member.timeout(config.timeout_duration, "スパム行為、マルチポストを行ったため自動でタイムアウト処置を行いました。");
+        await this.log_channel?.send({ embeds: [await getSpamLogEmbed(messages[0].message.author, messages.map((message => message.message)))] });
+      }
+      else {
+        console.log("ホワイトリストに含まれているため、スキップしました");
+      }
+    }
+    else {
+      console.log("このメンバーはキックできないため、スキップしました");
+    }
   }
 
   public onMessageCreate(message: Message<boolean>) {

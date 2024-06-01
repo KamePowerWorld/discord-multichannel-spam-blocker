@@ -10,6 +10,7 @@ export type Config = {
   timeout_duration: number;
   max_allows_multi_post_channels_count: number;
   test_channel_id: string[];
+  whitelist_role_ids: string[];
 };
 
 export default function loadConfig(): Config {
