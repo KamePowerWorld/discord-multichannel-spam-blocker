@@ -12,13 +12,6 @@ export type MessageType = { // キーはユーザー
   message: Message<boolean>,
 }; // ユーザーごとに配列で持っておく
 
-type ChunkedMessageType = {
-  channel: string;
-  chunked_messages: {
-    [user: string]: MessageType[];
-  };
-};
-
 /**
  * メッセージリスナー
  *
@@ -40,11 +33,6 @@ export class MessageListener {
    */
   private userMessages: UserMessage = {};
 
-  /**
-   * チャンネルごとのメッセージリスト
-   */
-  private channel_messages: ChunkedMessageType[] = [];
-
   constructor(config: Config) {
     this.config = config;
   }
@@ -60,14 +48,11 @@ export class MessageListener {
 
   /**
    * メッセージを追加する
-   * @param message
+   * @param message メッセージ
    */
   addMessage(message: Message<boolean>) {
-    let messages = this.userMessages[message.author.id];
-    if (!messages) {
-      messages = [];
-    }
-
+    //ユーザーごとにメッセージをロード
+    let messages = this.userMessages[message.author.id] ?? [];
     messages.push({
       channel: message.channel.id,
       content: message.content,
@@ -75,61 +60,36 @@ export class MessageListener {
       message: message,
     });
 
-    this.userMessages[message.author.id] = messages;
-    this.channel_messages = this.chunkByChannel(messages);
+    //時間をすきたメッセージを忘れる 
+    messages = messages.filter((m) => {
+      const diff = /* 今 */ message.createdTimestamp - /* 当時 */ m.timestamp.getTime(); // 経過時間
+      return diff <= this.config.cooldown; // 設定時間よりも短い場合は残す
+    });
 
+    //同一ユーザーの同じ内容のメッセージを取得
+    const user_messages = messages.filter((m) => m.content === message.content);
     //重複をカウント
-    const duplicate_count = messages.filter((m) => m.content === message.content);
-
-    if (duplicate_count.length >= this.config.max_allows_multi_post_channels_count) {
-      const user_messages = messages.filter((m) => m.content === message.content);
-
-      //timestamp diff
-      const time = user_messages[0].timestamp.getTime();
-      const diff = message.createdTimestamp - time;
-      if (diff <= this.config.cooldown) {
-        //メッセージがすべて同じユーザーであるかどうかを確認
-        const is_same_user = user_messages.every((m) => m.message.author.id === message.author.id);
-
-        if (is_same_user) {
-          this.onMultiPostSpammingDetected(user_messages);
-          
-        }
-      }
-      
-      this.userMessages[message.author.id] = this.userMessages[message.author.id].filter((m) => m.content !== message.content);
+    const duplicate_count = Object.keys(this.chunkByChannel(user_messages)).length;
+    if (duplicate_count >= this.config.max_allows_multi_post_channels_count) {
+      this.onMultiPostSpammingDetected(user_messages);
     }
+
+    //ユーザーごとにメッセージをセーブ
+    this.userMessages[message.author.id] = messages;
   }
 
-  chunkByChannel(messages: MessageType[]): ChunkedMessageType[] {
-    const channel_messages = messages.reduce((acc, message) => {
+  /**
+   * チャンネルごとにメッセージを分割する
+   * @param messages メッセージ
+   * @returns チャンネルごとに分割されたメッセージ
+   */
+  chunkByChannel(messages: MessageType[]): Record<string, MessageType[]>{
+    return messages.reduce((acc, message) => {
       if (!acc[message.channel]) {
         acc[message.channel] = [];
       }
       acc[message.channel].push(message);
       return acc;
     }, {} as { [channel: string]: MessageType[] });
-
-    const result = Object.entries(channel_messages).map(([channel, messages]) => {
-      const chunked_messages = this.chunkByUser(messages);
-      return {
-        channel,
-        chunked_messages
-      };
-    });
-
-    return result;
-  }
-
-  chunkByUser(messages: MessageType[]) {
-    const chunked_messages = messages.reduce((acc, message) => {
-      if (!acc[message.message.author.id]) {
-        acc[message.message.author.id] = [];
-      }
-      acc[message.message.author.id].push(message);
-      return acc;
-    }, {} as { [user: string]: MessageType[] });
-
-    return chunked_messages;
   }
 }
