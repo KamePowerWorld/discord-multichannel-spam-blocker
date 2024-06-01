@@ -1,4 +1,4 @@
-import { EmbedBuilder, Message, User } from 'discord.js';
+import { EmbedBuilder, Message, MessageCreateOptions, User } from 'discord.js';
 
 export function getLogEmbedMessage(
   title: string,
@@ -29,23 +29,29 @@ export function setAuthor(embed: EmbedBuilder, user: User) {
 export async function getEmbed(message: string) {
   return new EmbedBuilder().setDescription(message);
 }
-export function getSpamLogEmbed(user: User, messages: Message[]) {
-  return new EmbedBuilder()
-    .setTitle('連投検知')
-    .setDescription(`${user.displayName} (<@${user.id}>) が複数チャンネルで連投しました`)
-    .addFields([
-      {
-        name: '送信したチャンネル',
-        value: messages.map(message=>`<#${message.channel.id}>`).join('\n'),
-      },
-      {
-        name: 'メッセージ内容',
-        value: `${messages[0].content}`,
-      }
-    ])
-    .setAuthor({
-      name: user.displayName,
-      iconURL: user.displayAvatarURL(),
-    })
-    .setColor('Red')
+export function createSpamLogMessage(user: User, messages: Message[]): MessageCreateOptions {
+  const content = messages[0].content;
+  return {
+    files: [...messages[0].attachments.values()],
+    embeds: [
+      new EmbedBuilder()
+        .setTitle('連投検知')
+        .setDescription(`${user.displayName} (<@${user.id}>) が複数チャンネルで連投しました`)
+        .addFields([
+          {
+            name: '送信したチャンネル',
+            value: messages.map(message=>`<t:${Math.floor(message.createdTimestamp / 1000)}:R> <#${message.channel.id}>`).join('\n'),
+          },
+          {
+            name: 'メッセージ内容',
+            value: `${content.length > 0 ? content : '画像のみ'}`,
+          },
+        ])
+        .setAuthor({
+          name: user.displayName,
+          iconURL: user.displayAvatarURL(),
+        })
+        .setColor('Red')
+    ]
+  }
 }

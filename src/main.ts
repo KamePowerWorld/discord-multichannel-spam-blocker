@@ -9,7 +9,7 @@ import {
 import dotenv from "dotenv";
 import loadConfig from "./config/config";
 import { MessageListener, MessageType } from "./listener/messagelister";
-import { getLogEmbedMessage, getSpamLogEmbed } from "./util/utils";
+import { getLogEmbedMessage, createSpamLogMessage } from "./util/utils";
 
 const config = loadConfig();
 
@@ -73,27 +73,35 @@ class CustomClient {
   async onSpam(messages: MessageType[]) {
     const message = messages[0].message;
     const member = await message.guild?.members.fetch(message.author.id);
-    if (member && member.kickable) {
-      const isWhitelistedMember = member.roles.cache.find((role) => config.whitelist_role_ids.includes(role.id)) !== undefined;
-      if (!isWhitelistedMember) {
-        messages.forEach(async (message) => {
-          if (message.message && message.message?.deletable) {
-            await message.message.delete().catch((error) => {
+    if (!member) {
+      await this.log_channel?.send({ embeds: [getLogEmbedMessage("エラー", `メンバー情報 <@${message.author.id}> の取得に失敗したため、スキップしました`, true, "error")] });
+      return;
+    }
 
-            });
-          }
+    const isWhitelistedMember = member.roles.cache.find((role) => config.whitelist_role_ids.includes(role.id)) !== undefined;
+    if (isWhitelistedMember) {
+      await this.log_channel?.send({ embeds: [getLogEmbedMessage("スキップ", `<@${message.author.id}>はホワイトリストに含まれているため、スキップしました`, true, "info")] });
+      return;
+    }
+
+    // ログを送信
+    await this.log_channel?.send(createSpamLogMessage(message.author, messages.map((message => message.message))));
+
+    // タイムアウト
+    try {
+      await member.timeout(config.timeout_duration, "スパム行為、マルチポストを行ったため自動でタイムアウト処置を行いました。");
+    } catch (error) {
+      await this.log_channel?.send({ embeds: [getLogEmbedMessage("スキップ", `<@${message.author.id}>はタイムアウトできないため、スキップしました`, true, "warn")] });
+    }
+
+    // メッセージを削除
+    messages.forEach(async (message) => {
+      if (message.message && message.message?.deletable) {
+        await message.message.delete().catch((error) => {
+
         });
-
-        await member.timeout(config.timeout_duration, "スパム行為、マルチポストを行ったため自動でタイムアウト処置を行いました。");
-        await this.log_channel?.send({ embeds: [await getSpamLogEmbed(message.author, messages.map((message => message.message)))] });
       }
-      else {
-        await this.log_channel?.send({ embeds: [getLogEmbedMessage("スキップ", `<@${message.author.id}>はホワイトリストに含まれているため、スキップしました`, true, "info")] });
-      }
-    }
-    else {
-      await this.log_channel?.send({ embeds: [getLogEmbedMessage("スキップ", `<@${message.author.id}>はキックできないため、スキップしました`, true, "info")] });
-    }
+    });
   }
 
   public onMessageCreate(message: Message<boolean>) {
