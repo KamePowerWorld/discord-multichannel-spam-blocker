@@ -9,7 +9,6 @@ import {
   CacheType,
 } from "discord.js";
 import dotenv from "dotenv";
-import { commands } from "./commands";
 // import { deployCommands } from "./commandregister";
 import loadConfig from "./config/config";
 import { MessageListener, MessageType } from "./listener/messagelister";
@@ -42,7 +41,6 @@ class CustomClient {
       await this.onReady();
     });
     this.client.on(Events.MessageCreate, this.onMessageCreate.bind(this));
-    this.client.on(Events.InteractionCreate, this.onInteractionCreate.bind(this));
     this.client.on(Events.Error, (error) => {
       this.log_channel?.send({ embeds: [getLogEmbedMessage("Error", error.message, true, "error")] });
     });
@@ -110,16 +108,6 @@ class CustomClient {
       return;
     }
     this.messageListener.addMessage(message);
-  }
-
-  public onInteractionCreate(interaction: Interaction<CacheType>) {
-    if (!interaction.isCommand()) {
-      return;
-    }
-    const { commandName } = interaction;
-    if (commands[commandName as keyof typeof commands]) {
-      // commands[commandName as keyof typeof commands].execute(interaction);
-    }
   }
 
   public async login() {
