@@ -67,7 +67,7 @@ class CustomClient {
       config.log_channel_id,
     )) as TextChannel;
 
-    if(config.test_channel_id){
+    if (config.test_channel_id) {
       this.test_channels = await Promise.all(config.test_channel_id.map(async (id) => (await exclusive_server?.channels.fetch(id)) as TextChannel));
     }
 
@@ -86,19 +86,18 @@ class CustomClient {
 
   async onSpam(messages: MessageType[]) {
     messages.forEach(async (message) => {
-      if (message.message) {
-        if (message.message.deletable) {
-          await message.message.delete().catch((error) => {
+      if (message.message && message.message?.deletable) {
+        await message.message.delete().catch((error) => {
 
-          });
-
-          const member = await message.message.guild?.members.fetch(message.message.author.id);
-          if(member){
-            await member.timeout(config.timeout_duration, "スパム行為、マルチポストを行ったため自動でタイムアウト処置を行いました。");
-          }
-        }
+        });
       }
     });
+
+    const member = await messages[0].message.guild?.members.fetch(messages[0].message.author.id);
+    if (member && member.kickable) {
+      await member.timeout(config.timeout_duration, "スパム行為、マルチポストを行ったため自動でタイムアウト処置を行いました。");
+    }
+
     await this.log_channel?.send({ embeds: [await getSpamLogEmbed(messages[0].message.author, messages.map((message => message.message)))] });
   }
 
