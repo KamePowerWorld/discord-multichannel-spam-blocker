@@ -41,7 +41,7 @@ class CustomClient {
     this.client.on(Events.ClientReady, async () => {
       await this.onReady();
     });
-    this.client.on(Events.MessageCreate, message=>{
+    this.client.on(Events.MessageCreate, message => {
       this.onMessageCreate(message);
     });
     this.client.on(Events.InteractionCreate, this.onInteractionCreate);
@@ -99,11 +99,11 @@ class CustomClient {
         await this.log_channel?.send({ embeds: [await getSpamLogEmbed(messages[0].message.author, messages.map((message => message.message)))] });
       }
       else {
-        console.log("ホワイトリストに含まれているため、スキップしました");
+        await this.log_channel?.send({ embeds: [getLogEmbedMessage("スキップ", "このメンバーはホワイトリストに含まれているため、スキップしました", true, "info")] });
       }
     }
     else {
-      console.log("このメンバーはキックできないため、スキップしました");
+      await this.log_channel?.send({ embeds: [getLogEmbedMessage("スキップ", "このメンバーはキックできないため、スキップしました", true, "info")] });
     }
   }
 

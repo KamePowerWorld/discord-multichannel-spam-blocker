@@ -19,6 +19,10 @@ export function getLogEmbedMessage(
   return embed;
 }
 
+export async function getEmbed(message: string){
+  return new EmbedBuilder().setDescription(message);
+}
+
 export async function getSpamLogEmbed(user: User, messages: Message[]) {
   const sent_channels = messages.map(async (message) => {
     const channel_name = (await message.guild?.channels.fetch(message.channel.id))?.name;
