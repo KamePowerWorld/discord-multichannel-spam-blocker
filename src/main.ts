@@ -4,12 +4,9 @@ import {
   Partials,
   Message,
   TextChannel,
-  Interaction,
   Events,
-  CacheType,
 } from "discord.js";
 import dotenv from "dotenv";
-// import { deployCommands } from "./commandregister";
 import loadConfig from "./config/config";
 import { MessageListener, MessageType } from "./listener/messagelister";
 import { getLogEmbedMessage, getSpamLogEmbed } from "./util/utils";
@@ -19,11 +16,6 @@ const config = loadConfig();
 dotenv.config();
 
 const token = process.env.TOKEN;
-
-// if (token && clientId) {
-//   const rest = new REST({ version: "10" }).setToken(token);
-//   deployCommands(clientId, rest);
-// }
 
 class CustomClient {
   private client: Client;

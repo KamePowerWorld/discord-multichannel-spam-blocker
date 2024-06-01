@@ -12,7 +12,7 @@ export type Config = {
 
 export default function loadConfig(): Config {
   const file = fs.readFileSync(
-    __dirname + "../../../config/config.yml",
+    "./config/config.yml",
     "utf8",
   );
   const config = YAML.parse(file);
@@ -21,5 +21,5 @@ export default function loadConfig(): Config {
 }
 
 export function saveConfig(config: string) {
-  fs.writeFileSync(__dirname + "../../../config/config.yml", config);
+  fs.writeFileSync("./config/config.yml", config);
 }
