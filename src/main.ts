@@ -112,15 +112,10 @@ if (token) {
   const client = new CustomClient(
     new Client({
       intents: [
-        GatewayIntentBits.DirectMessages,
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMessageReactions,
-        GatewayIntentBits.GuildEmojisAndStickers,
-        GatewayIntentBits.GuildModeration,
-        GatewayIntentBits.GuildMessageTyping,
       ],
       partials: [Partials.Message, Partials.Channel, Partials.Reaction],
     }),
