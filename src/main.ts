@@ -74,8 +74,8 @@ class CustomClient {
     const message = messages[0].message;
     const member = await message.guild?.members.fetch(message.author.id);
     if (member && member.kickable) {
-      const hasrole = member.roles.cache.find((role) => config.whitelist_role_ids.includes(role.id));
-      if (hasrole !== undefined) {
+      const isWhitelistedMember = member.roles.cache.find((role) => config.whitelist_role_ids.includes(role.id)) !== undefined;
+      if (!isWhitelistedMember) {
         messages.forEach(async (message) => {
           if (message.message && message.message?.deletable) {
             await message.message.delete().catch((error) => {

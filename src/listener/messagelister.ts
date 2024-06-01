@@ -79,8 +79,9 @@ export class MessageListener {
     this.channel_messages = this.chunkByChannel(messages);
 
     //重複をカウント
-    const duplicate_count = messages.filter((m) => m.content === message.content).length;
-    if (duplicate_count >= this.config.max_allows_multi_post_channels_count) {
+    const duplicate_count = messages.filter((m) => m.content === message.content);
+
+    if (duplicate_count.length >= this.config.max_allows_multi_post_channels_count) {
       const user_messages = messages.filter((m) => m.content === message.content);
 
       //timestamp diff
