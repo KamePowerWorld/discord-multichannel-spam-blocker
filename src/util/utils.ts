@@ -19,7 +19,14 @@ export function getLogEmbedMessage(
   return embed;
 }
 
-export async function getEmbed(message: string){
+export function setAuthor(embed: EmbedBuilder, user: User) {
+  return embed.setAuthor({
+    name: user.displayName,
+    iconURL: user.avatarURL()?.toString(),
+  });
+}
+
+export async function getEmbed(message: string) {
   return new EmbedBuilder().setDescription(message);
 }
 

@@ -71,10 +71,11 @@ class CustomClient {
   }
 
   async onSpam(messages: MessageType[]) {
-    const member = await messages[0].message.guild?.members.fetch(messages[0].message.author.id);
+    const message = messages[0].message;
+    const member = await message.guild?.members.fetch(message.author.id);
     if (member && member.kickable) {
-      const hasrole = member.roles.cache.map((role) => role.id == role.id).includes(true);
-      if (hasrole) {
+      const hasrole = member.roles.cache.find((role) => config.whitelist_role_ids.includes(role.id));
+      if (hasrole !== undefined) {
         messages.forEach(async (message) => {
           if (message.message && message.message?.deletable) {
             await message.message.delete().catch((error) => {
@@ -84,14 +85,14 @@ class CustomClient {
         });
 
         await member.timeout(config.timeout_duration, "スパム行為、マルチポストを行ったため自動でタイムアウト処置を行いました。");
-        await this.log_channel?.send({ embeds: [await getSpamLogEmbed(messages[0].message.author, messages.map((message => message.message)))] });
+        await this.log_channel?.send({ embeds: [await getSpamLogEmbed(message.author, messages.map((message => message.message)))] });
       }
       else {
-        await this.log_channel?.send({ embeds: [getLogEmbedMessage("スキップ", "このメンバーはホワイトリストに含まれているため、スキップしました", true, "info")] });
+        await this.log_channel?.send({ embeds: [getLogEmbedMessage("スキップ", `<@${message.author.id}>はホワイトリストに含まれているため、スキップしました`, true, "info")] });
       }
     }
     else {
-      await this.log_channel?.send({ embeds: [getLogEmbedMessage("スキップ", "このメンバーはキックできないため、スキップしました", true, "info")] });
+      await this.log_channel?.send({ embeds: [getLogEmbedMessage("スキップ", `<@${message.author.id}>はキックできないため、スキップしました`, true, "info")] });
     }
   }
 
