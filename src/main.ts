@@ -20,7 +20,6 @@ const config = loadConfig();
 dotenv.config();
 
 const token = process.env.TOKEN;
-const clientId = process.env.CLIENT_ID;
 
 // if (token && clientId) {
 //   const rest = new REST({ version: "10" }).setToken(token);

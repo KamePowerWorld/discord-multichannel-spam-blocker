@@ -28,7 +28,6 @@ pnpm run start
 | 設定名 | 説明 |
 | ---- | ---- |
 | `TOKEN` | BOTのトークン |
-| `CLIENT_ID` | BOTのクライアントID |
 
 ./config/config.yml
 
