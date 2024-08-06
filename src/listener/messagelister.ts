@@ -60,7 +60,7 @@ export class MessageListener {
       message: message,
     });
 
-    //時間をすきたメッセージを忘れる 
+    //時間をすぎたメッセージを忘れる 
     messages = messages.filter((m) => {
       const diff = /* 今 */ message.createdTimestamp - /* 当時 */ m.timestamp.getTime(); // 経過時間
       return diff <= this.config.cooldown; // 設定時間よりも短い場合は残す
