@@ -57,10 +57,10 @@ class CustomClient {
     ))
 
     if (maybe_log_channel?.type !== ChannelType.GuildText) {
-      throw new Error("ログチャンネルがテキストチャンネルではありません。");
+      console.error("ログチャンネルがテキストチャンネルではありません。");
+    }else {
+      this.log_channel = maybe_log_channel;
     }
-
-    this.log_channel = maybe_log_channel;
 
     if (config.test_channel_ids) {
       this.test_channels = await Promise.all(config.test_channel_ids.map(async (id) => (await exclusive_server?.channels.fetch(id)) as TextChannel));
