@@ -1,6 +1,7 @@
 import fs from "fs";
 import YAML from "yaml";
-export type Config = {
+
+export interface Config {
   exclusive_server_id: string;
   log_channel_id: string;
   cooldown: number;

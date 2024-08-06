@@ -1,11 +1,15 @@
 import { Message, User } from 'discord.js';
 import { Config } from "../config/config";
 
-type UserMessage = {
+interface UserMessage {
   [user: string]: MessageType[]
 };
 
-export type MessageType = { // キーはユーザー
+interface ChannelMessage {
+  [channel: string]: MessageType[]
+};
+
+export interface MessageType { // キーはユーザー
   channel: string, // チャンネルとメッセージのペアを保存する
   content: string,
   timestamp: Date,
@@ -83,13 +87,13 @@ export class MessageListener {
    * @param messages メッセージ
    * @returns チャンネルごとに分割されたメッセージ
    */
-  chunkByChannel(messages: MessageType[]): Record<string, MessageType[]>{
+  chunkByChannel(messages: MessageType[]): ChannelMessage{
     return messages.reduce((acc, message) => {
       if (!acc[message.channel]) {
         acc[message.channel] = [];
       }
       acc[message.channel].push(message);
       return acc;
-    }, {} as { [channel: string]: MessageType[] });
+    }, {} as ChannelMessage);
   }
 }
