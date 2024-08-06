@@ -61,8 +61,9 @@ class CustomClient {
     ))
 
     if (
+      !maybe_log_channel ||
       (maybe_log_channel && maybe_log_channel.type !== ChannelType.GuildText) 
-      || !maybe_log_channel) {
+    ) {
       throw new NotExpectError("ログチャンネルがテキストチャンネルではありません。");
     }
 
