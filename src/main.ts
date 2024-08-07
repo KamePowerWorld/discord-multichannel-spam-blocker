@@ -11,7 +11,7 @@ import dotenv from "dotenv";
 import loadConfig from "./config/config";
 import { MessageListener, MessageType } from "./listener/messagelister";
 import { getLogEmbedMessage, createSpamLogMessage } from "./util/utils";
-import { NotExpectError, NotFoundError, NotReadyError, NotSettedError } from "./error/error";
+import { NotExpectError, NotFoundError, NotReadyError, NotSettedError } from "./error/errors";
 
 const config = loadConfig();
 
