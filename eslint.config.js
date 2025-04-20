@@ -5,17 +5,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-const globals = require('globals');
-const tseslint = require('typescript-eslint');
-const tsParser = require('@typescript-eslint/parser');
-const jsdoc = require('eslint-plugin-jsdoc');
-const eslint = require('@eslint/js');
-const eslintConfigPrettier = require('eslint-config-prettier');
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import tsParser from '@typescript-eslint/parser';
+import jsdoc from 'eslint-plugin-jsdoc';
+import eslint from '@eslint/js';
+import eslintConfigPrettier from 'eslint-config-prettier';
 
-module.exports = [
-    {
-        files: ['**/*.ts'],
-    },
+export default [
     // Plugins
     eslint.configs.recommended,
     tseslint.configs.eslintRecommended,

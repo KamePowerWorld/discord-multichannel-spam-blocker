@@ -2,6 +2,7 @@
   "name": "automod",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "lint-fix": "eslint --cache --fix src/ && prettier --write src/",
     "test": "ts-node src/main.ts",
@@ -10,8 +11,11 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "description": "",
+  "engines": {
+    "node": "22.x"
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.4.0",

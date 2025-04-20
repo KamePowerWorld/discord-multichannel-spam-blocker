@@ -3,7 +3,7 @@ config/config.yml
 node_modules/
 build/
 docs/
-package-lock.json
 pnpm-lock.yaml
 tsdoc.json
 .idea
+.eslintcache
