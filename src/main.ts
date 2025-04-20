@@ -6,12 +6,12 @@ import {
   TextChannel,
   Events,
   ChannelType,
-} from "discord.js";
-import dotenv from "dotenv";
-import loadConfig from "./config/config";
-import { MessageListener, MessageType } from "./listener/messagelister";
-import { getLogEmbedMessage, createSpamLogMessage } from "./util/utils";
-import { NotExpectError, NotFoundError, NotReadyError, NotSettedError } from "./error/errors";
+} from 'discord.js';
+import dotenv from 'dotenv';
+import loadConfig from './config/config';
+import { MessageListener, MessageType } from './listener/messagelister';
+import { getLogEmbedMessage, createSpamLogMessage } from './util/utils';
+import { NotExpectError, NotFoundError, NotReadyError, NotSettedError } from './error/errors';
 
 const config = loadConfig();
 
@@ -36,8 +36,8 @@ class CustomClient {
     });
     this.client.on(Events.MessageCreate, this.onMessageCreate.bind(this));
     this.client.on(Events.Error, (error) => {
-      if (!this.log_channel) throw new NotReadyError("準備が完了していません。");
-      this.log_channel.send({ embeds: [getLogEmbedMessage("Error", error.message, true, "error")] });
+      if (!this.log_channel) throw new NotReadyError('準備が完了していません。');
+      this.log_channel.send({ embeds: [getLogEmbedMessage('Error', error.message, true, 'error')] });
     });
   }
 
@@ -53,7 +53,7 @@ class CustomClient {
     );
 
     if (!exclusive_server) {
-      throw new NotFoundError("対象のサーバーが見つかりません。");
+      throw new NotFoundError('対象のサーバーが見つかりません。');
     }
 
     const maybe_log_channel = (await exclusive_server.channels.fetch(
@@ -64,7 +64,7 @@ class CustomClient {
       !maybe_log_channel ||
       (maybe_log_channel && maybe_log_channel.type !== ChannelType.GuildText) 
     ) {
-      throw new NotExpectError("ログチャンネルがテキストチャンネルではありません。");
+      throw new NotExpectError('ログチャンネルがテキストチャンネルではありません。');
     }
 
     this.log_channel = maybe_log_channel;
@@ -90,16 +90,16 @@ class CustomClient {
     const message = messages[0].message;
     const member = await message.guild?.members.fetch(message.author.id);
 
-    if (!this.log_channel) throw new NotReadyError("準備が完了していません。");
+    if (!this.log_channel) throw new NotReadyError('準備が完了していません。');
 
     if (!member) {
-      await this.log_channel.send({ embeds: [getLogEmbedMessage("エラー", `メンバー情報 <@${message.author.id}> の取得に失敗したため、スキップしました`, true, "error")] });
+      await this.log_channel.send({ embeds: [getLogEmbedMessage('エラー', `メンバー情報 <@${message.author.id}> の取得に失敗したため、スキップしました`, true, 'error')] });
       return;
     }
 
     const isWhitelistedMember = member.roles.cache.find((role) => config.whitelist_role_ids.includes(role.id)) !== undefined;
     if (isWhitelistedMember) {
-      await this.log_channel.send({ embeds: [getLogEmbedMessage("スキップ", `<@${message.author.id}>はホワイトリストに含まれているため、スキップしました`, true, "info")] });
+      await this.log_channel.send({ embeds: [getLogEmbedMessage('スキップ', `<@${message.author.id}>はホワイトリストに含まれているため、スキップしました`, true, 'info')] });
       return;
     }
 
@@ -108,9 +108,9 @@ class CustomClient {
 
     // タイムアウト
     try {
-      await member.timeout(config.timeout_duration, "スパム行為、マルチポストを行ったため自動でタイムアウト処置を行いました。");
+      await member.timeout(config.timeout_duration, 'スパム行為、マルチポストを行ったため自動でタイムアウト処置を行いました。');
     } catch (error) {
-      await this.log_channel.send({ embeds: [getLogEmbedMessage("スキップ", `<@${message.author.id}>はタイムアウトできないため、スキップしました`, true, "warn")] });
+      await this.log_channel.send({ embeds: [getLogEmbedMessage('スキップ', `<@${message.author.id}>はタイムアウトできないため、スキップしました`, true, 'warn')] });
     }
 
     // メッセージを削除
@@ -149,5 +149,5 @@ if (token) {
 
   client.login();
 }else {
-  throw new NotSettedError("トークンが設定されていません。");
+  throw new NotSettedError('トークンが設定されていません。');
 }
