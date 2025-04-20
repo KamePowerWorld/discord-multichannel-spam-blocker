@@ -1,10 +1,10 @@
 /**
- *
+ * 想定外のエラーを表します。
  */
 export class NotExpectError extends Error {
     /**
-     *
-     * @param message
+     * エラーメッセージを指定して初期化します。
+     * @param message エラーメッセージ
      */
     constructor(message: string) {
         super(message);
@@ -13,12 +13,12 @@ export class NotExpectError extends Error {
 }
 
 /**
- *
+ * リソースが見つからないエラーを表します。
  */
 export class NotFoundError extends Error {
     /**
-     *
-     * @param message
+     * エラーメッセージを指定して初期化します。
+     * @param message エラーメッセージ
      */
     constructor(message: string) {
         super(message);
@@ -27,12 +27,12 @@ export class NotFoundError extends Error {
 }
 
 /**
- *
+ * リソースが準備できていないエラーを表します。
  */
 export class NotReadyError extends Error {
     /**
-     *
-     * @param message
+     * エラーメッセージを指定して初期化します。
+     * @param message エラーメッセージ
      */
     constructor(message: string) {
         super(message);
@@ -41,12 +41,12 @@ export class NotReadyError extends Error {
 }
 
 /**
- *
+ * リソースが設定されていないエラーを表します。
  */
 export class NotSettedError extends Error {
     /**
-     *
-     * @param message
+     * エラーメッセージを指定して初期化します。
+     * @param message エラーメッセージ
      */
     constructor(message: string) {
         super(message);

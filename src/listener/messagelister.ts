@@ -10,26 +10,28 @@ interface ChannelMessage {
 };
 
 /**
- *
+ * メッセージの型定義
+ * キーはユーザー
  */
-export interface MessageType { // キーはユーザー
+export interface MessageType { 
   /**
-   *
+   * チャンネルID
+   * チャンネルとメッセージのペアを保存する
    */
-  channel: string, // チャンネルとメッセージのペアを保存する
+  channel: string, 
   /**
-   *
+   * メッセージ内容
    */
   content: string,
   /**
-   *
+   * タイムスタンプ
    */
   timestamp: Date,
   /**
-   *
+   * メッセージオブジェクト
    */
   message: Message<boolean>,
-}; // ユーザーごとに配列で持っておく
+};
 
 /**
  * メッセージリスナー
@@ -38,12 +40,12 @@ export interface MessageType { // キーはユーザー
  */
 export class MessageListener {
   /**
-   * 複数のメッセージを短時間で投稿した場合の処理を設定する 時間はコンフィグで設定可能
+   * スパム検出時の処理
    */
   private onMultiPostSpammingDetected: (message: MessageType[]) => void = () => { };
 
   /**
-   * コンフィグ (コンストラクタで読み込む)
+   * 設定情報
    */
   private config: Config;
 
@@ -53,8 +55,8 @@ export class MessageListener {
   private userMessages: UserMessage = {};
 
   /**
-   *
-   * @param config
+   * コンストラクタ
+   * @param config 設定情報
    */
   constructor(config: Config) {
     this.config = config;
@@ -62,10 +64,9 @@ export class MessageListener {
 
   /**
    * 複数のメッセージを短時間で投稿した場合の処理を設定する 時間はコンフィグで設定可能
-   * @param func
-   * @returns void
+   * @param func 処理関数
    */
-  setOnMultiPostSpammingDetected(func: (message: MessageType[]) => void) {
+  setOnMultiPostSpammingDetected(func: (message: MessageType[]) => void): void {
     this.onMultiPostSpammingDetected = func;
   }
 
@@ -73,7 +74,7 @@ export class MessageListener {
    * メッセージを追加する
    * @param message メッセージ
    */
-  addMessage(message: Message<boolean>) {
+  addMessage(message: Message<boolean>): void {
     // ユーザーごとにメッセージをロード
     let messages = this.userMessages[message.author.id] ?? [];
     messages.push({
@@ -106,7 +107,7 @@ export class MessageListener {
    * @param messages メッセージ
    * @returns チャンネルごとに分割されたメッセージ
    */
-  chunkByChannel(messages: MessageType[]): ChannelMessage{
+  chunkByChannel(messages: MessageType[]): ChannelMessage {
     return messages.reduce((acc, message) => {
       if (!acc[message.channel]) {
         acc[message.channel] = [];
