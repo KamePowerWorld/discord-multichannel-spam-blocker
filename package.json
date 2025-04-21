@@ -1,39 +1,42 @@
 {
-  "name": "automod",
+  "name": "discord-multichannel-spam-blocker",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "複数チャンネルへの同じメッセージ投稿を検知してタイムアウト＆通知をします。",
+  "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "lint-fix": "eslint --cache --fix src/ && prettier --write src/",
-    "test": "ts-node src/main.ts",
-    "start": "node build/main.js",
-    "compile": "tsc -p ."
+    "start": "node --import tsx/esm src/index.ts",
+    "clean": "rimraf dist",
+    "tsc": "tsc",
+    "build": "npm-run-all clean tsc",
+    "lint": "tsc --noEmit && eslint --cache --fix",
+    "prettier": "prettier --write",
+    "lint-staged": "lint-staged",
+    "prepare": "npx if-env NODE_ENV=production && echo 'Skipping husky in production' || husky"
   },
-  "keywords": [],
-  "author": "",
+  "author": "Hashibutogarasu, Kamesuta",
   "license": "MIT",
-  "description": "",
   "engines": {
     "node": "22.x"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.4.0",
     "@typescript-eslint/parser": "^8.0.0-alpha.13",
     "eslint": "^9.4.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jsdoc": "^48.2.7",
-    "globals": "^15.3.0",
+    "husky": "^9.1.7",
     "prettier": "^3.2.5",
-    "source-map-support": "^0.5.21",
-    "ts-node": "^10.9.2",
+    "rimraf": "^6.0.1",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.0.0-alpha.13"
   },
   "dependencies": {
-    "@microsoft/tsdoc": "^0.15.0",
     "discord.js": "^14.15.2",
     "dotenv": "^16.4.5",
-    "yaml": "^2.4.2"
+    "if-env": "^1.0.4",
+    "yaml": "^2.4.2",
+    "tsx": "^4.19.3"
   }
 }
