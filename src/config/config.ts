@@ -1,5 +1,6 @@
 import fs from 'fs';
 import yaml from 'yaml';
+import { getWorkdirPath } from '../util/workdir.js';
 
 /**
  * 設定ファイルの構造
@@ -45,17 +46,9 @@ export default function loadConfig(): Config {
   /**
    * 設定ファイルを読み込む
    */
-  const file = fs.readFileSync('./config/config.yml', 'utf8');
+  const file = fs.readFileSync(getWorkdirPath('config.yml'), 'utf-8');
   /**
    * YAML形式の設定をパースする
    */
   return yaml.parse(file) as Config;
-}
-
-/**
- * 設定ファイルを保存する
- * @param config 保存する設定内容
- */
-export function saveConfig(config: string): void {
-  fs.writeFileSync('./config/config.yml', config);
 }
