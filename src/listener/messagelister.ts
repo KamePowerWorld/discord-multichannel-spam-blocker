@@ -2,36 +2,36 @@ import { Message } from 'discord.js';
 import { Config } from '../config/config';
 
 interface UserMessage {
-  [user: string]: MessageType[]
-};
+  [user: string]: MessageType[];
+}
 
 interface ChannelMessage {
-  [channel: string]: MessageType[]
-};
+  [channel: string]: MessageType[];
+}
 
 /**
  * メッセージの型定義
  * キーはユーザー
  */
-export interface MessageType { 
+export interface MessageType {
   /**
    * チャンネルID
    * チャンネルとメッセージのペアを保存する
    */
-  channel: string, 
+  channel: string;
   /**
    * メッセージ内容
    */
-  content: string,
+  content: string;
   /**
    * タイムスタンプ
    */
-  timestamp: Date,
+  timestamp: Date;
   /**
    * メッセージオブジェクト
    */
-  message: Message<boolean>,
-};
+  message: Message<boolean>;
+}
 
 /**
  * メッセージリスナー
@@ -42,7 +42,8 @@ export class MessageListener {
   /**
    * スパム検出時の処理
    */
-  private _onMultiPostSpammingDetected: (message: MessageType[]) => void = () => { };
+  private _onMultiPostSpammingDetected: (message: MessageType[]) => void =
+    () => {};
 
   /**
    * 設定情報
@@ -84,16 +85,19 @@ export class MessageListener {
       message: message,
     });
 
-    // 時間をすぎたメッセージを忘れる 
+    // 時間をすぎたメッセージを忘れる
     messages = messages.filter((m) => {
-      const diff = /* 今 */ message.createdTimestamp - /* 当時 */ m.timestamp.getTime(); // 経過時間
+      const diff =
+        /* 今 */ message.createdTimestamp - /* 当時 */ m.timestamp.getTime(); // 経過時間
       return diff <= this._config.cooldown; // 設定時間よりも短い場合は残す
     });
 
     // 同一ユーザーの同じ内容のメッセージを取得
     const userMessages = messages.filter((m) => m.content === message.content);
     // 重複をカウント
-    const duplicateCount = Object.keys(this.chunkByChannel(userMessages)).length;
+    const duplicateCount = Object.keys(
+      this.chunkByChannel(userMessages),
+    ).length;
     if (duplicateCount >= this._config.max_allows_multi_post_channels_count) {
       this._onMultiPostSpammingDetected(userMessages);
     }

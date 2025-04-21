@@ -11,7 +11,12 @@ import dotenv from 'dotenv';
 import loadConfig from './config/config';
 import { MessageListener, MessageType } from './listener/messagelister';
 import { getLogEmbedMessage, createSpamLogMessage } from './util/utils';
-import { NotExpectError, NotFoundError, NotReadyError, NotSettedError } from './error/errors';
+import {
+  NotExpectError,
+  NotFoundError,
+  NotReadyError,
+  NotSettedError,
+} from './error/errors';
 
 const config = loadConfig();
 
@@ -36,8 +41,11 @@ class CustomClient {
     });
     this._client.on(Events.MessageCreate, this.onMessageCreate.bind(this));
     this._client.on(Events.Error, (error) => {
-      if (!this._logChannel) throw new NotReadyError('準備が完了していません。');
-      void this._logChannel.send({ embeds: [getLogEmbedMessage('Error', error.message, true, 'error')] });
+      if (!this._logChannel)
+        throw new NotReadyError('準備が完了していません。');
+      void this._logChannel.send({
+        embeds: [getLogEmbedMessage('Error', error.message, true, 'error')],
+      });
     });
   }
 
@@ -56,21 +64,28 @@ class CustomClient {
       throw new NotFoundError('対象のサーバーが見つかりません。');
     }
 
-    const maybeLogChannel = (await exclusiveServer.channels.fetch(
+    const maybeLogChannel = await exclusiveServer.channels.fetch(
       config.log_channel_id,
-    ))
+    );
 
     if (
       !maybeLogChannel ||
-      (maybeLogChannel && maybeLogChannel.type !== ChannelType.GuildText) 
+      (maybeLogChannel && maybeLogChannel.type !== ChannelType.GuildText)
     ) {
-      throw new NotExpectError('ログチャンネルがテキストチャンネルではありません。');
+      throw new NotExpectError(
+        'ログチャンネルがテキストチャンネルではありません。',
+      );
     }
 
     this._logChannel = maybeLogChannel;
 
     if (config.test_channel_ids) {
-      this._testChannels = await Promise.all(config.test_channel_ids.map(async (id) => (await exclusiveServer.channels.fetch(id)) as TextChannel));
+      this._testChannels = await Promise.all(
+        config.test_channel_ids.map(
+          async (id) =>
+            (await exclusiveServer.channels.fetch(id)) as TextChannel,
+        ),
+      );
     }
 
     if (this._logChannel) {
@@ -81,7 +96,7 @@ class CustomClient {
       void this.onSpam(messages);
     });
 
-    for (const channel of this._testChannels){
+    for (const channel of this._testChannels) {
       await channel.messages.channel.bulkDelete(100);
     }
   }
@@ -93,30 +108,70 @@ class CustomClient {
     if (!this._logChannel) throw new NotReadyError('準備が完了していません。');
 
     if (!member) {
-      await this._logChannel.send({ embeds: [getLogEmbedMessage('エラー', `メンバー情報 <@${message.author.id}> の取得に失敗したため、スキップしました`, true, 'error')] });
+      await this._logChannel.send({
+        embeds: [
+          getLogEmbedMessage(
+            'エラー',
+            `メンバー情報 <@${message.author.id}> の取得に失敗したため、スキップしました`,
+            true,
+            'error',
+          ),
+        ],
+      });
       return;
     }
 
-    const isWhitelistedMember = member.roles.cache.find((role) => config.whitelist_role_ids.includes(role.id)) !== undefined;
+    const isWhitelistedMember =
+      member.roles.cache.find((role) =>
+        config.whitelist_role_ids.includes(role.id),
+      ) !== undefined;
     if (isWhitelistedMember) {
-      await this._logChannel.send({ embeds: [getLogEmbedMessage('スキップ', `<@${message.author.id}>はホワイトリストに含まれているため、スキップしました`, true, 'info')] });
+      await this._logChannel.send({
+        embeds: [
+          getLogEmbedMessage(
+            'スキップ',
+            `<@${message.author.id}>はホワイトリストに含まれているため、スキップしました`,
+            true,
+            'info',
+          ),
+        ],
+      });
       return;
     }
 
     // ログを送信
-    await this._logChannel.send(createSpamLogMessage(message.author, messages.map((message => message.message))));
+    await this._logChannel.send(
+      createSpamLogMessage(
+        message.author,
+        messages.map((message) => message.message),
+      ),
+    );
 
     // タイムアウト
     try {
-      await member.timeout(config.timeout_duration, 'スパム行為、マルチポストを行ったため自動でタイムアウト処置を行いました。');
+      await member.timeout(
+        config.timeout_duration,
+        'スパム行為、マルチポストを行ったため自動でタイムアウト処置を行いました。',
+      );
     } catch (_error) {
-      await this._logChannel.send({ embeds: [getLogEmbedMessage('スキップ', `<@${message.author.id}>はタイムアウトできないため、スキップしました`, true, 'warn')] });
+      await this._logChannel.send({
+        embeds: [
+          getLogEmbedMessage(
+            'スキップ',
+            `<@${message.author.id}>はタイムアウトできないため、スキップしました`,
+            true,
+            'warn',
+          ),
+        ],
+      });
     }
 
     // メッセージを削除
     for (const message of messages) {
       if (message.message && message.message?.deletable) {
-        await message.message.delete().catch((_error) => {/* 何もしない */});
+        await message.message.delete().catch((_error) => {
+          /* 何もしない */
+        });
       }
     }
   }
@@ -148,6 +203,6 @@ if (token) {
   );
 
   void client.login();
-}else {
+} else {
   throw new NotSettedError('トークンが設定されていません。');
 }

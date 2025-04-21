@@ -61,7 +61,10 @@ export function getEmbed(message: string): EmbedBuilder {
  * @param messages - ユーザーが送信したメッセージのリスト。
  * @returns スパムログ用のメッセージオプション。
  */
-export function createSpamLogMessage(user: User, messages: Message[]): MessageCreateOptions {
+export function createSpamLogMessage(
+  user: User,
+  messages: Message[],
+): MessageCreateOptions {
   /**
    *
    */
@@ -77,11 +80,18 @@ export function createSpamLogMessage(user: User, messages: Message[]): MessageCr
     embeds: [
       new EmbedBuilder()
         .setTitle('連投検知')
-        .setDescription(`${user.displayName} (<@${user.id}>) が複数チャンネルで連投しました`)
+        .setDescription(
+          `${user.displayName} (<@${user.id}>) が複数チャンネルで連投しました`,
+        )
         .addFields([
           {
             name: '送信したチャンネル',
-            value: messages.map(message => `<t:${Math.floor(message.createdTimestamp / 1000)}:R> <#${message.channel.id}>`).join('\n'),
+            value: messages
+              .map(
+                (message) =>
+                  `<t:${Math.floor(message.createdTimestamp / 1000)}:R> <#${message.channel.id}>`,
+              )
+              .join('\n'),
           },
           {
             /**
@@ -104,7 +114,7 @@ export function createSpamLogMessage(user: User, messages: Message[]): MessageCr
            */
           iconURL: user.displayAvatarURL(),
         })
-        .setColor('Red')
-    ]
-  }
+        .setColor('Red'),
+    ],
+  };
 }

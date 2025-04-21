@@ -35,7 +35,7 @@ export interface Config {
    */
   whitelist_role_ids: string[];
   /* eslint-enable @typescript-eslint/naming-convention */
-};
+}
 
 /**
  * 設定ファイルを読み込む
@@ -45,10 +45,7 @@ export default function loadConfig(): Config {
   /**
    * 設定ファイルを読み込む
    */
-  const file = fs.readFileSync(
-    './config/config.yml',
-    'utf8',
-  );
+  const file = fs.readFileSync('./config/config.yml', 'utf8');
   /**
    * YAML形式の設定をパースする
    */
