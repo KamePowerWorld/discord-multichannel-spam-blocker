@@ -2,8 +2,8 @@
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable jsdoc/require-jsdoc */
 /* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable @typescript-eslint/no-var-requires */
 
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -16,7 +16,6 @@ export default [
     // Plugins
     eslint.configs.recommended,
     tseslint.configs.eslintRecommended,
-    ...tseslint.configs.recommended,
     ...tseslint.configs.recommendedTypeChecked,
     jsdoc.configs['flat/recommended'],
     eslintConfigPrettier,
@@ -30,8 +29,7 @@ export default [
             parser: tsParser,
             parserOptions: {
                 sourceType: 'module',
-                ecmaVersion: 2022,
-                project: './tsconfig.json',
+                project: ['tsconfig.json'],
             },
         },
         plugins: {
@@ -39,7 +37,6 @@ export default [
             'eslint-plugin-jsdoc': jsdoc,
         },
         rules: {
-            quotes: ['error', 'single'],
             'unicode-bom': ['error', 'never'],
             '@typescript-eslint/explicit-function-return-type': 'warn',
             'no-var': 'off',
