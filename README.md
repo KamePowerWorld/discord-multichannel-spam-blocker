@@ -37,7 +37,7 @@ pnpm run start
 .env
 | 設定名 | 説明 |
 | ---- | ---- |
-| `TOKEN` | BOTのトークン |
+| `DISCORD_TOKEN` | BOTのトークン |
 
 ./config/config.yml
 

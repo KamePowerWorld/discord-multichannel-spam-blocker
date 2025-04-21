@@ -22,7 +22,7 @@ const config = loadConfig();
 
 dotenv.config();
 
-const token = process.env.TOKEN;
+const token = process.env.DISCORD_TOKEN;
 
 class CustomClient {
   private _client: Client;
