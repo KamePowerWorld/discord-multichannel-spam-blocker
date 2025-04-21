@@ -31,21 +31,21 @@ class CustomClient {
     this.client = client;
     this.messageListener = new MessageListener(config);
 
-    this.client.on(Events.ClientReady, async () => {
-      await this.onReady();
+    this.client.on(Events.ClientReady, () => {
+      void this.onReady();
     });
     this.client.on(Events.MessageCreate, this.onMessageCreate.bind(this));
     this.client.on(Events.Error, (error) => {
       if (!this.log_channel) throw new NotReadyError('準備が完了していません。');
-      this.log_channel.send({ embeds: [getLogEmbedMessage('Error', error.message, true, 'error')] });
+      void this.log_channel.send({ embeds: [getLogEmbedMessage('Error', error.message, true, 'error')] });
     });
   }
 
-  public getClient() {
+  public getClient(): Client {
     return this.client;
   }
 
-  public async onReady() {
+  public async onReady(): Promise<void> {
     console.log(`Ready! ${this.client.user?.tag}`);
 
     const exclusive_server = this.client.guilds.cache.find(
@@ -77,16 +77,16 @@ class CustomClient {
       // log_channel.send({embeds: [getLogEmbedMessage("Info", "Bot is ready!", true, "info")]});
     }
 
-    this.messageListener.setOnMultiPostSpammingDetected(async (messages) => {
-      await this.onSpam(messages);
+    this.messageListener.setOnMultiPostSpammingDetected((messages) => {
+      void this.onSpam(messages);
     });
 
-    this.test_channels.forEach((channel) => {
-      channel.messages.channel.bulkDelete(100);
-    });
+    for (const channel of this.test_channels){
+      await channel.messages.channel.bulkDelete(100);
+    }
   }
 
-  async onSpam(messages: MessageType[]) {
+  async onSpam(messages: MessageType[]): Promise<void> {
     const message = messages[0].message;
     const member = await message.guild?.members.fetch(message.author.id);
 
@@ -114,22 +114,22 @@ class CustomClient {
     }
 
     // メッセージを削除
-    messages.forEach(async (message) => {
+    for (const message of messages) {
       if (message.message && message.message?.deletable) {
         await message.message.delete().catch((_error) => {/* 何もしない */});
       }
-    });
+    }
   }
 
-  public onMessageCreate(message: Message<boolean>) {
+  public onMessageCreate(message: Message<boolean>): void {
     if (message.author.bot) {
       return;
     }
     this.messageListener.addMessage(message);
   }
 
-  public async login() {
-    this.client.login(this.token);
+  public async login(): Promise<void> {
+    await this.client.login(this.token);
   }
 }
 
@@ -147,7 +147,7 @@ if (token) {
     token,
   );
 
-  client.login();
+  void client.login();
 }else {
   throw new NotSettedError('トークンが設定されていません。');
 }
