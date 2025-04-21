@@ -1,4 +1,4 @@
-import { Message, User } from 'discord.js';
+import { Message } from 'discord.js';
 import { Config } from '../config/config';
 
 interface UserMessage {
@@ -42,24 +42,24 @@ export class MessageListener {
   /**
    * スパム検出時の処理
    */
-  private onMultiPostSpammingDetected: (message: MessageType[]) => void = () => { };
+  private _onMultiPostSpammingDetected: (message: MessageType[]) => void = () => { };
 
   /**
    * 設定情報
    */
-  private config: Config;
+  private _config: Config;
 
   /**
    * ユーザーごとのメッセージリスト
    */
-  private userMessages: UserMessage = {};
+  private _userMessages: UserMessage = {};
 
   /**
    * コンストラクタ
    * @param config 設定情報
    */
   constructor(config: Config) {
-    this.config = config;
+    this._config = config;
   }
 
   /**
@@ -67,7 +67,7 @@ export class MessageListener {
    * @param func 処理関数
    */
   setOnMultiPostSpammingDetected(func: (message: MessageType[]) => void): void {
-    this.onMultiPostSpammingDetected = func;
+    this._onMultiPostSpammingDetected = func;
   }
 
   /**
@@ -76,7 +76,7 @@ export class MessageListener {
    */
   addMessage(message: Message<boolean>): void {
     // ユーザーごとにメッセージをロード
-    let messages = this.userMessages[message.author.id] ?? [];
+    let messages = this._userMessages[message.author.id] ?? [];
     messages.push({
       channel: message.channel.id,
       content: message.content,
@@ -87,19 +87,19 @@ export class MessageListener {
     // 時間をすぎたメッセージを忘れる 
     messages = messages.filter((m) => {
       const diff = /* 今 */ message.createdTimestamp - /* 当時 */ m.timestamp.getTime(); // 経過時間
-      return diff <= this.config.cooldown; // 設定時間よりも短い場合は残す
+      return diff <= this._config.cooldown; // 設定時間よりも短い場合は残す
     });
 
     // 同一ユーザーの同じ内容のメッセージを取得
-    const user_messages = messages.filter((m) => m.content === message.content);
+    const userMessages = messages.filter((m) => m.content === message.content);
     // 重複をカウント
-    const duplicate_count = Object.keys(this.chunkByChannel(user_messages)).length;
-    if (duplicate_count >= this.config.max_allows_multi_post_channels_count) {
-      this.onMultiPostSpammingDetected(user_messages);
+    const duplicateCount = Object.keys(this.chunkByChannel(userMessages)).length;
+    if (duplicateCount >= this._config.max_allows_multi_post_channels_count) {
+      this._onMultiPostSpammingDetected(userMessages);
     }
 
     // ユーザーごとにメッセージをセーブ
-    this.userMessages[message.author.id] = messages;
+    this._userMessages[message.author.id] = messages;
   }
 
   /**

@@ -1,10 +1,11 @@
 import fs from 'fs';
-import YAML from 'yaml';
+import yaml from 'yaml';
 
 /**
  * 設定ファイルの構造
  */
 export interface Config {
+  /* eslint-disable @typescript-eslint/naming-convention */
   /**
    * 対象のサーバーID
    */
@@ -33,6 +34,7 @@ export interface Config {
    * ホワイトリストに登録されたロールIDのリスト
    */
   whitelist_role_ids: string[];
+  /* eslint-enable @typescript-eslint/naming-convention */
 };
 
 /**
@@ -50,7 +52,7 @@ export default function loadConfig(): Config {
   /**
    * YAML形式の設定をパースする
    */
-  return YAML.parse(file) as Config;
+  return yaml.parse(file) as Config;
 }
 
 /**
