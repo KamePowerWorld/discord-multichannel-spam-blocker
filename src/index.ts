@@ -180,7 +180,9 @@ class CustomClient {
     if (message.author.bot) {
       return;
     }
-    this._messageListener.addMessage(message);
+    void this._messageListener.addMessage(message).catch((error) => {
+      console.error('メッセージ処理中にエラーが発生しました', error);
+    });
   }
 
   public async login(): Promise<void> {

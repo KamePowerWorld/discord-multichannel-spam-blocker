@@ -1,5 +1,6 @@
 import { Message } from 'discord.js';
 import { Config } from '../config/config';
+import { collectImageHashes } from '../util/imageHash';
 
 interface UserMessage {
   [user: string]: MessageType[];
@@ -31,6 +32,10 @@ export interface MessageType {
    * メッセージオブジェクト
    */
   message: Message<boolean>;
+  /**
+   * メッセージに添付された画像のハッシュ一覧
+   */
+  imageHashes: string[];
 }
 
 /**
@@ -75,31 +80,51 @@ export class MessageListener {
    * メッセージを追加する
    * @param message メッセージ
    */
-  addMessage(message: Message<boolean>): void {
+  async addMessage(message: Message<boolean>): Promise<void> {
     // ユーザーごとにメッセージをロード
     let messages = this._userMessages[message.author.id] ?? [];
+    // 添付と本文の両方から画像リンクを拾ってハッシュ化
+    const imageHashes = await collectImageHashes(message);
+    // チャンネルや本文などを丸ごとキューに保存しておく
     messages.push({
       channel: message.channel.id,
       content: message.content,
       timestamp: new Date(message.createdTimestamp),
       message: message,
+      imageHashes,
     });
 
-    // 時間をすぎたメッセージを忘れる
+    // 設定されたクールダウンを過ぎたメッセージは都度破棄する
     messages = messages.filter((m) => {
       const diff =
         /* 今 */ message.createdTimestamp - /* 当時 */ m.timestamp.getTime(); // 経過時間
       return diff <= this._config.cooldown; // 設定時間よりも短い場合は残す
     });
 
-    // 同一ユーザーの同じ内容のメッセージを取得
-    const userMessages = messages.filter((m) => m.content === message.content);
-    // 重複をカウント
-    const duplicateCount = Object.keys(
-      this.chunkByChannel(userMessages),
-    ).length;
-    if (duplicateCount >= this._config.max_allows_multi_post_channels_count) {
-      this._onMultiPostSpammingDetected(userMessages);
+    // まずはチャンネル単位でグルーピングしてから検査を共通化する
+    const chunkedMessages = this.chunkByChannel(messages);
+
+    // --- 文字列による同報検知 ---
+    // 投稿済みメッセージのうち本文が完全一致するものを全チャンネルから収集する
+    const duplicatedTexts = this.collectMatches(
+      chunkedMessages,
+      (m) => m.content === message.content,
+    );
+    // 許容チャンネル数を超えていたらそこでスパム扱い
+    if (this.exceedsChannelLimit(duplicatedTexts)) {
+      this._onMultiPostSpammingDetected(duplicatedTexts);
+      return;
+    }
+
+    // --- 画像による同報検知 ---
+    // 画像自体のハッシュが一致するメッセージを横断的に取得して判定
+    const duplicatedImages = this.findDuplicatedImages(
+      chunkedMessages,
+      imageHashes,
+    );
+    if (duplicatedImages) {
+      this._onMultiPostSpammingDetected(duplicatedImages);
+      return;
     }
 
     // ユーザーごとにメッセージをセーブ
@@ -112,6 +137,7 @@ export class MessageListener {
    * @returns チャンネルごとに分割されたメッセージ
    */
   chunkByChannel(messages: MessageType[]): ChannelMessage {
+    // チャンネルごとに別バケットへ押し込むだけのシンプルなヘルパー
     return messages.reduce((acc, message) => {
       if (!acc[message.channel]) {
         acc[message.channel] = [];
@@ -119,5 +145,43 @@ export class MessageListener {
       acc[message.channel].push(message);
       return acc;
     }, {} as ChannelMessage);
+  }
+
+  private collectMatches(
+    chunkedMessages: ChannelMessage,
+    predicate: (message: MessageType) => boolean,
+  ): MessageType[] {
+    // 全チャンネルを走査しつつ、条件を満たしたメッセージだけを抽出
+    const matches: MessageType[] = [];
+    for (const channelMessages of Object.values(chunkedMessages)) {
+      matches.push(...channelMessages.filter(predicate));
+    }
+    return matches;
+  }
+
+  private findDuplicatedImages(
+    chunkedMessages: ChannelMessage,
+    candidateHashes: string[],
+  ): MessageType[] | undefined {
+    // 取得済みのハッシュ候補を順番に照合し、どれか1つでも閾値を超えれば即検出
+    for (const hash of candidateHashes) {
+      const imageMessages = this.collectMatches(
+        chunkedMessages,
+        (m) => m.imageHashes.includes(hash),
+      );
+      if (this.exceedsChannelLimit(imageMessages)) {
+        return imageMessages;
+      }
+    }
+    return undefined;
+  }
+
+  private exceedsChannelLimit(messages: MessageType[]): boolean {
+    // 同報が発生したチャンネル数を数えて、許容値を超えたら true
+    const channelCount = new Set(messages.map((message) => message.channel))
+      .size;
+    return (
+      channelCount >= this._config.max_allows_multi_post_channels_count
+    );
   }
 }
