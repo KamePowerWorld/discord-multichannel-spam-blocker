@@ -65,56 +65,78 @@ export function createSpamLogMessage(
   user: User,
   messages: Message[],
 ): MessageCreateOptions {
-  /**
-   *
-   */
-  const content = messages[0].content;
+  const formattedMessages = messages.map((message) => ({
+    content: formatMessageContent(message),
+    attachments: [...message.attachments.values()],
+  }));
+  const allSameContent = formattedMessages.every(
+    (item) => item.content === formattedMessages[0].content,
+  );
+  const fields = [
+    {
+      name: '送信したチャンネル',
+      value: messages
+        .map(
+          (message) =>
+            `<t:${Math.floor(message.createdTimestamp / 1000)}:R> <#${message.channel.id}>`,
+        )
+        .join('\n'),
+    },
+  ];
+
+  if (allSameContent) {
+    fields.push({
+      name: 'メッセージ内容',
+      value: formattedMessages[0].content,
+    });
+  } else {
+    formattedMessages.forEach((item, index) => {
+      fields.push({
+        name: `メッセージ内容${index + 1}`,
+        value: item.content,
+      });
+    });
+  }
+
   return {
-    /**
-     *
-     */
-    files: [...messages[0].attachments.values()],
-    /**
-     *
-     */
+    files: formattedMessages.flatMap((item) => item.attachments),
     embeds: [
       new EmbedBuilder()
         .setTitle('連投検知')
         .setDescription(
           `${user.displayName} (<@${user.id}>) が複数チャンネルで連投しました`,
         )
-        .addFields([
-          {
-            name: '送信したチャンネル',
-            value: messages
-              .map(
-                (message) =>
-                  `<t:${Math.floor(message.createdTimestamp / 1000)}:R> <#${message.channel.id}>`,
-              )
-              .join('\n'),
-          },
-          {
-            /**
-             *
-             */
-            name: 'メッセージ内容',
-            /**
-             *
-             */
-            value: `${content.length > 0 ? content : '画像のみ'}`,
-          },
-        ])
+        .addFields(fields)
         .setAuthor({
           /**
-           *
+           * 投稿者の名前
            */
           name: user.displayName,
           /**
-           *
+           * 投稿者のアイコンURL
            */
           iconURL: user.displayAvatarURL(),
         })
         .setColor('Red'),
     ],
   };
+}
+
+function formatMessageContent(message: Message): string {
+  const attachments = [...message.attachments.values()];
+  const attachmentDescription =
+    attachments.length > 0
+      ? attachments
+          .map((attachment, index) => `添付${index + 1}: ${attachment.url}`)
+          .join('\n')
+      : undefined;
+  const baseContent =
+    message.content.length > 0
+      ? message.content
+      : attachments.length > 0
+        ? '画像のみ'
+        : 'テキストなし';
+  return attachmentDescription
+    ? `${baseContent}\n${attachmentDescription}`
+    : baseContent;
 }
