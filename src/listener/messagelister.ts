@@ -77,8 +77,8 @@ export class MessageListener {
   }
 
   /**
-   * メッセージを追加する
-   * @param message メッセージ
+   * 受け取ったメッセージをストックし、各種スパム検出ロジックを実行する
+   * @param message Discord.js のメッセージオブジェクト
    */
   async addMessage(message: Message<boolean>): Promise<void> {
     // ユーザーごとにメッセージをロード
@@ -104,6 +104,13 @@ export class MessageListener {
     // まずはチャンネル単位でグルーピングしてから検査を共通化する
     const chunkedMessages = this.chunkByChannel(messages);
 
+    // --- 内容不問の多チャンネル投稿検知 ---
+    const anyContentSpam = this.detectAnyContentSpam(chunkedMessages);
+    if (anyContentSpam) {
+      this._onMultiPostSpammingDetected(anyContentSpam);
+      return;
+    }
+
     // --- 文字列による同報検知 ---
     // 投稿済みメッセージのうち本文が完全一致するものを全チャンネルから収集する
     const duplicatedTexts = this.collectMatches(
@@ -111,7 +118,12 @@ export class MessageListener {
       (m) => m.content === message.content,
     );
     // 許容チャンネル数を超えていたらそこでスパム扱い
-    if (this.exceedsChannelLimit(duplicatedTexts)) {
+    if (
+      this.exceedsChannelLimit(
+        duplicatedTexts,
+        this._config.max_allows_multi_post_channels_count,
+      )
+    ) {
       this._onMultiPostSpammingDetected(duplicatedTexts);
       return;
     }
@@ -147,6 +159,12 @@ export class MessageListener {
     }, {} as ChannelMessage);
   }
 
+  /**
+   * 条件を満たすメッセージのみを抽出してフラット化する
+   * @param chunkedMessages チャンネルごとにまとめたメッセージ
+   * @param predicate フィルタ条件
+   * @returns 条件を満たすメッセージ一覧
+   */
   private collectMatches(
     chunkedMessages: ChannelMessage,
     predicate: (message: MessageType) => boolean,
@@ -159,29 +177,72 @@ export class MessageListener {
     return matches;
   }
 
+  /**
+   * 内容を問わず一定数のチャンネルで投稿があったか確認する
+   * @param chunkedMessages ユーザーのメッセージ履歴（チャンネル別）
+   * @returns スパム判定対象のメッセージリスト
+   */
+  private detectAnyContentSpam(
+    chunkedMessages: ChannelMessage,
+  ): MessageType[] | undefined {
+    const threshold =
+      this._config.max_any_content_multi_post_channels_count ?? 0;
+    if (threshold <= 0) {
+      return undefined;
+    }
+
+    const channels = Object.values(chunkedMessages);
+    if (channels.length < threshold) {
+      return undefined;
+    }
+
+    const flattened: MessageType[] = [];
+    for (const channelMessages of channels) {
+      flattened.push(...channelMessages);
+    }
+    return flattened;
+  }
+
+  /**
+   * 画像ハッシュを用いてマルチポスト対象を抽出する
+   * @param chunkedMessages チャンネルごとにまとめたメッセージ
+   * @param candidateHashes 直近メッセージから抽出したハッシュ一覧
+   * @returns スパム判定対象のメッセージリスト
+   */
   private findDuplicatedImages(
     chunkedMessages: ChannelMessage,
     candidateHashes: string[],
   ): MessageType[] | undefined {
     // 取得済みのハッシュ候補を順番に照合し、どれか1つでも閾値を超えれば即検出
     for (const hash of candidateHashes) {
-      const imageMessages = this.collectMatches(
-        chunkedMessages,
-        (m) => m.imageHashes.includes(hash),
+      const imageMessages = this.collectMatches(chunkedMessages, (m) =>
+        m.imageHashes.includes(hash),
       );
-      if (this.exceedsChannelLimit(imageMessages)) {
+      if (
+        this.exceedsChannelLimit(
+          imageMessages,
+          this._config.max_allows_multi_post_channels_count,
+        )
+      ) {
         return imageMessages;
       }
     }
     return undefined;
   }
 
-  private exceedsChannelLimit(messages: MessageType[]): boolean {
+  /**
+   * 閾値以上のチャンネルで投稿されているかを判定する
+   * @param messages 判定対象のメッセージ
+   * @param limit チャンネル数の閾値
+   * @returns 許容数を超えているかどうか
+   */
+  private exceedsChannelLimit(messages: MessageType[], limit: number): boolean {
+    if (limit <= 0) {
+      return false;
+    }
     // 同報が発生したチャンネル数を数えて、許容値を超えたら true
     const channelCount = new Set(messages.map((message) => message.channel))
       .size;
-    return (
-      channelCount >= this._config.max_allows_multi_post_channels_count
-    );
+    return channelCount >= limit;
   }
 }

@@ -28,6 +28,10 @@ export interface Config {
    */
   max_allows_multi_post_channels_count: number;
   /**
+   * 内容を問わずマルチポストとみなすチャンネル数
+   */
+  max_any_content_multi_post_channels_count: number;
+  /**
    * テスト用チャンネルIDのリスト
    */
   test_channel_ids: string[];
