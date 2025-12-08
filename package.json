@@ -9,7 +9,8 @@
     "clean": "rimraf dist",
     "tsc": "tsc",
     "build": "npm-run-all clean tsc",
-    "lint": "tsc --noEmit && eslint --cache --fix",
+    "lint": "tsc --noEmit && eslint --cache",
+    "lint:fix": "tsc --noEmit && eslint --cache --fix",
     "prettier": "prettier --write",
     "lint-staged": "lint-staged",
     "prepare": "npx if-env NODE_ENV=production && echo 'Skipping husky in production' || husky"
@@ -25,6 +26,7 @@
     "eslint": "^9.25.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-jsdoc": "^50.6.9",
+    "globals": "^16.5.0",
     "husky": "^9.1.7",
     "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
@@ -36,7 +38,7 @@
     "discord.js": "^14.18.0",
     "dotenv": "^16.5.0",
     "if-env": "^1.0.4",
-    "yaml": "^2.7.1",
-    "tsx": "^4.19.3"
+    "tsx": "^4.19.3",
+    "yaml": "^2.7.1"
   }
 }

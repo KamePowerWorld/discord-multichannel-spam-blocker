@@ -1,6 +1,6 @@
 // eslint.config.js
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+ 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable jsdoc/require-jsdoc */
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -13,6 +13,9 @@ import eslint from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default [
+    {
+        ignores: ['eslint.config.js'],
+    },
     // Plugins
     eslint.configs.recommended,
     tseslint.configs.eslintRecommended,

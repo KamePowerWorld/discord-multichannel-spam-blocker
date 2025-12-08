@@ -105,7 +105,7 @@ export class MessageListener {
     const chunkedMessages = this.chunkByChannel(messages);
 
     // --- 内容不問の多チャンネル投稿検知 ---
-    const anyContentSpam = this.detectAnyContentSpam(chunkedMessages);
+    const anyContentSpam = this._detectAnyContentSpam(chunkedMessages);
     if (anyContentSpam) {
       this._onMultiPostSpammingDetected(anyContentSpam);
       return;
@@ -113,13 +113,13 @@ export class MessageListener {
 
     // --- 文字列による同報検知 ---
     // 投稿済みメッセージのうち本文が完全一致するものを全チャンネルから収集する
-    const duplicatedTexts = this.collectMatches(
+    const duplicatedTexts = this._collectMatches(
       chunkedMessages,
       (m) => m.content === message.content,
     );
     // 許容チャンネル数を超えていたらそこでスパム扱い
     if (
-      this.exceedsChannelLimit(
+      this._exceedsChannelLimit(
         duplicatedTexts,
         this._config.max_allows_multi_post_channels_count,
       )
@@ -130,7 +130,7 @@ export class MessageListener {
 
     // --- 画像による同報検知 ---
     // 画像自体のハッシュが一致するメッセージを横断的に取得して判定
-    const duplicatedImages = this.findDuplicatedImages(
+    const duplicatedImages = this._findDuplicatedImages(
       chunkedMessages,
       imageHashes,
     );
@@ -165,7 +165,7 @@ export class MessageListener {
    * @param predicate フィルタ条件
    * @returns 条件を満たすメッセージ一覧
    */
-  private collectMatches(
+  private _collectMatches(
     chunkedMessages: ChannelMessage,
     predicate: (message: MessageType) => boolean,
   ): MessageType[] {
@@ -182,7 +182,7 @@ export class MessageListener {
    * @param chunkedMessages ユーザーのメッセージ履歴（チャンネル別）
    * @returns スパム判定対象のメッセージリスト
    */
-  private detectAnyContentSpam(
+  private _detectAnyContentSpam(
     chunkedMessages: ChannelMessage,
   ): MessageType[] | undefined {
     const threshold =
@@ -209,17 +209,17 @@ export class MessageListener {
    * @param candidateHashes 直近メッセージから抽出したハッシュ一覧
    * @returns スパム判定対象のメッセージリスト
    */
-  private findDuplicatedImages(
+  private _findDuplicatedImages(
     chunkedMessages: ChannelMessage,
     candidateHashes: string[],
   ): MessageType[] | undefined {
     // 取得済みのハッシュ候補を順番に照合し、どれか1つでも閾値を超えれば即検出
     for (const hash of candidateHashes) {
-      const imageMessages = this.collectMatches(chunkedMessages, (m) =>
+      const imageMessages = this._collectMatches(chunkedMessages, (m) =>
         m.imageHashes.includes(hash),
       );
       if (
-        this.exceedsChannelLimit(
+        this._exceedsChannelLimit(
           imageMessages,
           this._config.max_allows_multi_post_channels_count,
         )
@@ -236,7 +236,10 @@ export class MessageListener {
    * @param limit チャンネル数の閾値
    * @returns 許容数を超えているかどうか
    */
-  private exceedsChannelLimit(messages: MessageType[], limit: number): boolean {
+  private _exceedsChannelLimit(
+    messages: MessageType[],
+    limit: number,
+  ): boolean {
     if (limit <= 0) {
       return false;
     }

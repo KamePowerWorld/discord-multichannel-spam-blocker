@@ -58,7 +58,7 @@ function extractImageUrlsFromContent(content: string): string[] {
   const urls: string[] = [];
   const regex = /(https?:\/\/[^\s>]+)/gi;
   let match: RegExpExecArray | null;
-  // eslint-disable-next-line no-cond-assign
+
   while ((match = regex.exec(content)) !== null) {
     const candidate = match[1];
     if (looksLikeImageUrl(candidate)) {
