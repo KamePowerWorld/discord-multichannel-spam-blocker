@@ -2,6 +2,11 @@ import { Message } from 'discord.js';
 import { Config } from '../config/config';
 import { collectImageHashes } from '../util/imageHash';
 
+/**
+ * スパム検出理由の型定義
+ */
+export type SpamReason = 'any_content' | 'text' | 'image';
+
 interface UserMessage {
   [user: string]: MessageType[];
 }
@@ -36,6 +41,10 @@ export interface MessageType {
    * メッセージに添付された画像のハッシュ一覧
    */
   imageHashes: string[];
+  /**
+   * スパム検出理由
+   */
+  spamReason?: SpamReason;
 }
 
 /**
@@ -124,7 +133,9 @@ export class MessageListener {
         this._config.max_allows_multi_post_channels_count,
       )
     ) {
-      this._onMultiPostSpammingDetected(duplicatedTexts);
+      this._onMultiPostSpammingDetected(
+        this._markSpamReason(duplicatedTexts, 'text'),
+      );
       return;
     }
 
@@ -200,7 +211,7 @@ export class MessageListener {
     for (const channelMessages of channels) {
       flattened.push(...channelMessages);
     }
-    return flattened;
+    return this._markSpamReason(flattened, 'any_content');
   }
 
   /**
@@ -224,7 +235,7 @@ export class MessageListener {
           this._config.max_allows_multi_post_channels_count,
         )
       ) {
-        return imageMessages;
+        return this._markSpamReason(imageMessages, 'image');
       }
     }
     return undefined;
@@ -247,5 +258,18 @@ export class MessageListener {
     const channelCount = new Set(messages.map((message) => message.channel))
       .size;
     return channelCount >= limit;
+  }
+
+  /**
+   * スパム検出理由をメッセージに紐付ける
+   * @param messages 判定対象メッセージ
+   * @param reason 理由
+   * @returns 理由を付加したメッセージ
+   */
+  private _markSpamReason(
+    messages: MessageType[],
+    reason: SpamReason,
+  ): MessageType[] {
+    return messages.map((message) => ({ ...message, spamReason: reason }));
   }
 }

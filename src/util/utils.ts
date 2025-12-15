@@ -1,4 +1,21 @@
-import { EmbedBuilder, Message, MessageCreateOptions, User } from 'discord.js';
+import {
+  Attachment,
+  EmbedBuilder,
+  Message,
+  MessageCreateOptions,
+  User,
+} from 'discord.js';
+import type { SpamReason } from '../listener/messagelister';
+
+const EMBED_FIELD_VALUE_LIMIT = 1024;
+
+function truncateFieldValue(value: string): string {
+  if (value.length <= EMBED_FIELD_VALUE_LIMIT) {
+    return value;
+  }
+  const sliceLength = Math.max(0, EMBED_FIELD_VALUE_LIMIT - 3);
+  return `${value.slice(0, sliceLength)}...`;
+}
 
 /**
  * ログ用の埋め込みメッセージを作成します。
@@ -59,15 +76,19 @@ export function getEmbed(message: string): EmbedBuilder {
  * スパムログ用のメッセージオプションを作成します。
  * @param user - スパムを送信したユーザー。
  * @param messages - ユーザーが送信したメッセージのリスト。
+ * @param options - ログ生成時の追加オプション。
  * @returns スパムログ用のメッセージオプション。
  */
 export function createSpamLogMessage(
   user: User,
   messages: Message[],
+  options?: { spamReason?: SpamReason },
 ): MessageCreateOptions {
+  const isImageSpam = options?.spamReason === 'image';
   const formattedMessages = messages.map((message) => ({
     content: formatMessageContent(message),
     attachments: [...message.attachments.values()],
+    imageUrls: collectImageUrlsForLog(message),
   }));
   const allSameContent = formattedMessages.every(
     (item) => item.content === formattedMessages[0].content,
@@ -75,25 +96,39 @@ export function createSpamLogMessage(
   const fields = [
     {
       name: '送信したチャンネル',
-      value: messages
-        .map(
-          (message) =>
-            `<t:${Math.floor(message.createdTimestamp / 1000)}:R> <#${message.channel.id}>`,
-        )
-        .join('\n'),
+      value: truncateFieldValue(
+        messages
+          .map(
+            (message) =>
+              `<t:${Math.floor(message.createdTimestamp / 1000)}:R> <#${message.channel.id}>`,
+          )
+          .join('\n'),
+      ),
     },
   ];
 
-  if (allSameContent) {
+  if (isImageSpam) {
+    const uniqueImageUrls = Array.from(
+      new Set(formattedMessages.flatMap((item) => item.imageUrls)),
+    );
+    fields.push({
+      name: '一致した画像URL',
+      value: truncateFieldValue(
+        uniqueImageUrls.length > 0
+          ? uniqueImageUrls.join('\n')
+          : '一致した画像URLを取得できませんでした',
+      ),
+    });
+  } else if (allSameContent) {
     fields.push({
       name: 'メッセージ内容',
-      value: formattedMessages[0].content,
+      value: truncateFieldValue(formattedMessages[0].content),
     });
   } else {
     formattedMessages.forEach((item, index) => {
       fields.push({
         name: `メッセージ内容${index + 1}`,
-        value: item.content,
+        value: truncateFieldValue(item.content),
       });
     });
   }
@@ -139,4 +174,30 @@ function formatMessageContent(message: Message): string {
   return attachmentDescription
     ? `${baseContent}\n${attachmentDescription}`
     : baseContent;
+}
+
+function collectImageUrlsForLog(message: Message): string[] {
+  const urls: string[] = [];
+  for (const attachment of message.attachments.values()) {
+    if (isLikelyImageAttachment(attachment)) {
+      urls.push(attachment.url);
+    }
+  }
+  for (const embed of message.embeds) {
+    if (embed.thumbnail?.url) {
+      urls.push(embed.thumbnail.url);
+    }
+    if (embed.image?.url) {
+      urls.push(embed.image.url);
+    }
+  }
+  return urls;
+}
+
+function isLikelyImageAttachment(attachment: Attachment): boolean {
+  if (attachment.contentType?.startsWith('image/')) {
+    return true;
+  }
+  const name = attachment.name ?? attachment.url;
+  return /\.(png|jpe?g|gif|webp|bmp)$/i.test(name);
 }

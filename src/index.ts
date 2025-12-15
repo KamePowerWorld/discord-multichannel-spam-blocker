@@ -139,13 +139,36 @@ class CustomClient {
       return;
     }
 
+    const spamReason = messages[0]?.spamReason;
+
     // ログを送信
-    await this._logChannel.send(
-      createSpamLogMessage(
-        message.author,
-        messages.map((message) => message.message),
-      ),
-    );
+    try {
+      await this._logChannel.send(
+        createSpamLogMessage(
+          message.author,
+          messages.map((message) => message.message),
+          { spamReason },
+        ),
+      );
+    } catch (error) {
+      console.error('スパムログの送信に失敗しました', error);
+      const fallbackDescription = [
+        `ユーザー: ${message.author.tag} (<@${message.author.id}>)`,
+        `対象メッセージ数: ${messages.length}`,
+        `関与チャンネル数: ${new Set(messages.map((item) => item.channel)).size}`,
+        `最後の投稿: <t:${Math.floor(message.createdTimestamp / 1000)}:R> <#${message.channel.id}>`,
+      ].join('\n');
+      await this._logChannel.send({
+        embeds: [
+          getLogEmbedMessage(
+            '連投検知 (簡易ログ)',
+            fallbackDescription,
+            true,
+            'warn',
+          ),
+        ],
+      });
+    }
 
     // タイムアウト
     try {
