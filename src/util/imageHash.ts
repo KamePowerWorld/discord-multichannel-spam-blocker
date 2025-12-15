@@ -1,4 +1,4 @@
-import { Attachment, Message } from 'discord.js';
+import { APIEmbedThumbnail, Attachment, Message } from 'discord.js';
 import { createHash } from 'crypto';
 import path from 'path';
 
@@ -25,17 +25,26 @@ export async function collectImageHashes(
 ): Promise<string[]> {
   const urls = new Set<string>();
 
+  // 添付ファイルから画像URLを抽出
   for (const attachment of message.attachments.values()) {
     if (isImageAttachment(attachment)) {
       urls.add(attachment.url);
     }
   }
 
-  for (const url of extractImageUrlsFromContent(message.content)) {
-    urls.add(url);
-  }
+  // メッセージ本文から画像Placeholderを抽出
+  // Discordがplaceholderフィールドにハッシュと同等な情報を入れてくれるため、それを利用する
+  type APIEmbedThumbnailEx = APIEmbedThumbnail & {
+    placeholder?: string;
+  };
+  const embeds = message.embeds
+    .map((embed) => (embed.data.thumbnail as APIEmbedThumbnailEx)?.placeholder)
+    .filter((url): url is string => typeof url === 'string');
 
   const hashes: string[] = [];
+  // 埋め込みのプレースホルダーからハッシュを抽出
+  hashes.push(...embeds);
+  // 添付ファイルはダウンロードしてハッシュ化
   for (const url of urls) {
     const hash = await hashRemoteImage(url, timeoutMs);
     if (hash) {
@@ -61,21 +70,9 @@ function extractImageUrlsFromContent(content: string): string[] {
 
   while ((match = regex.exec(content)) !== null) {
     const candidate = match[1];
-    if (looksLikeImageUrl(candidate)) {
-      urls.push(candidate);
-    }
+    urls.push(candidate);
   }
   return urls;
-}
-
-function looksLikeImageUrl(candidate: string): boolean {
-  try {
-    const parsed = new URL(candidate);
-    const ext = path.extname(parsed.pathname).toLowerCase();
-    return Boolean(ext) && IMAGE_EXTENSIONS.has(ext);
-  } catch {
-    return false;
-  }
 }
 
 async function hashRemoteImage(
