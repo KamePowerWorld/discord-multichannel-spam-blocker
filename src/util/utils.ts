@@ -134,7 +134,7 @@ export function createSpamLogMessage(
   }
 
   return {
-    files: formattedMessages.flatMap((item) => item.attachments),
+    files: formattedMessages.flatMap((item) => item.attachments).slice(0, 10),
     embeds: [
       new EmbedBuilder()
         .setTitle('連投検知')
